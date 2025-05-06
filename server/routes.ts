@@ -1,7 +1,19 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
+import { insertJobPostSchema } from "@shared/schema";
+import { z } from "zod";
+
+// Extend the Express Request type to include session
+declare module 'express-serve-static-core' {
+  interface Request {
+    session?: {
+      userId?: number;
+      [key: string]: any;
+    };
+  }
+}
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -53,6 +65,188 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Failed to tailor resume",
         error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // Save job post directly from job description form
+  app.post("/api/job-description/save", async (req, res) => {
+    try {
+      const { title, company, location, description, url, notes } = req.body;
+      
+      if (!title || !company || !description) {
+        return res.status(400).json({
+          message: "Job title, company, and description are required"
+        });
+      }
+
+      // Default to user ID 1 if not logged in for demo
+      const userId = req.session?.userId || 1;
+      
+      const jobPost = await storage.createJobPost({
+        userId,
+        title,
+        company,
+        location: location || "",
+        description,
+        url: url || "",
+        notes: notes || "",
+        status: "saved"
+      });
+      
+      res.status(201).json(jobPost);
+    } catch (error) {
+      console.error("Error saving job post:", error);
+      res.status(500).json({
+        message: "Failed to save job post",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Job board endpoints
+  app.get("/api/jobs", async (req, res) => {
+    try {
+      // Default to user ID 1 if not logged in for demo
+      const userId = req.session?.userId || 1;
+      const jobs = await storage.getJobPostsByUserId(userId);
+      res.status(200).json(jobs);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+      res.status(500).json({
+        message: "Failed to fetch jobs",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/jobs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid job ID" });
+      }
+      
+      const job = await storage.getJobPostById(id);
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      
+      res.status(200).json(job);
+    } catch (error) {
+      console.error("Error fetching job:", error);
+      res.status(500).json({
+        message: "Failed to fetch job",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/jobs", async (req, res) => {
+    try {
+      const validationResult = insertJobPostSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: "Invalid job post data",
+          errors: validationResult.error.format()
+        });
+      }
+      
+      // Default to user ID 1 if not logged in for demo
+      const userId = req.session?.userId || 1;
+      const jobPost = await storage.createJobPost({
+        ...validationResult.data,
+        userId
+      });
+      
+      res.status(201).json(jobPost);
+    } catch (error) {
+      console.error("Error creating job post:", error);
+      res.status(500).json({
+        message: "Failed to create job post",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.patch("/api/jobs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid job ID" });
+      }
+      
+      const job = await storage.getJobPostById(id);
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      
+      const updatedJob = await storage.updateJobPost(id, req.body);
+      res.status(200).json(updatedJob);
+    } catch (error) {
+      console.error("Error updating job:", error);
+      res.status(500).json({
+        message: "Failed to update job",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.patch("/api/jobs/:id/status", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid job ID" });
+      }
+      
+      const job = await storage.getJobPostById(id);
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      
+      const { status } = req.body;
+      
+      // Validate status
+      const statusValidator = z.enum([
+        "saved", "applied", "hr_screen", "interview", "offer", "accepted", "rejected"
+      ]);
+      
+      const validationResult = statusValidator.safeParse(status);
+      if (!validationResult.success) {
+        return res.status(400).json({ message: "Invalid status value" });
+      }
+      
+      const updatedJob = await storage.updateJobPostStatus(id, status);
+      res.status(200).json(updatedJob);
+    } catch (error) {
+      console.error("Error updating job status:", error);
+      res.status(500).json({
+        message: "Failed to update job status",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.delete("/api/jobs/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid job ID" });
+      }
+      
+      const job = await storage.getJobPostById(id);
+      if (!job) {
+        return res.status(404).json({ message: "Job not found" });
+      }
+      
+      await storage.deleteJobPost(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting job:", error);
+      res.status(500).json({
+        message: "Failed to delete job",
+        error: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });

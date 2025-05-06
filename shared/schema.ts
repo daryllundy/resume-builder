@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -28,9 +28,46 @@ export const insertTailoringHistorySchema = createInsertSchema(tailoringHistorie
   id: true,
 });
 
+// Job application status enum
+export const applicationStatusEnum = pgEnum("application_status", [
+  "saved",
+  "applied",
+  "hr_screen",
+  "interview",
+  "offer",
+  "accepted",
+  "rejected"
+]);
+
+// Job board schema
+export const jobPosts = pgTable("job_posts", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  title: text("title").notNull(),
+  company: text("company").notNull(),
+  location: text("location"),
+  description: text("description").notNull(),
+  url: text("url"),
+  notes: text("notes"),
+  status: applicationStatusEnum("status").notNull().default("saved"),
+  dateAdded: timestamp("date_added").notNull().defaultNow(),
+  dateModified: timestamp("date_modified").notNull().defaultNow(),
+  deadline: timestamp("deadline"),
+});
+
+export const insertJobPostSchema = createInsertSchema(jobPosts).omit({
+  id: true,
+  dateAdded: true,
+  dateModified: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
 export type InsertTailoringHistory = z.infer<typeof insertTailoringHistorySchema>;
 export type TailoringHistory = typeof tailoringHistories.$inferSelect;
+
+export type InsertJobPost = z.infer<typeof insertJobPostSchema>;
+export type JobPost = typeof jobPosts.$inferSelect;
+export type ApplicationStatus = typeof applicationStatusEnum.enumValues[number];
