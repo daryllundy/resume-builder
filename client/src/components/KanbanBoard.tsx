@@ -112,10 +112,11 @@ export default function KanbanBoard({
     setActiveJob(null);
   }
 
-  // Refresh the jobs data
+  // Refresh the jobs data and log for debugging
   useEffect(() => {
     refreshJobs();
-  }, [refreshJobs]);
+    console.log("KanbanBoard received jobs:", jobs);
+  }, [refreshJobs, jobs.length]);
 
   return (
     <div className="w-full overflow-auto">

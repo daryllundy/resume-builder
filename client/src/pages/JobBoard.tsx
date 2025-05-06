@@ -13,12 +13,21 @@ export default function JobBoard() {
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [selectedTab, setSelectedTab] = useState<ApplicationStatus | "all">("all");
   
-  const { data: jobs = [], isLoading, refetch } = useQuery({
+  const { data: jobs = [], isLoading, refetch, error } = useQuery({
     queryKey: ["/api/jobs"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/jobs");
-      return response.json() as Promise<JobPost[]>;
+      try {
+        const response = await apiRequest("GET", "/api/jobs");
+        const data = await response.json() as JobPost[];
+        console.log("Fetched jobs:", data);
+        return data;
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+        throw error;
+      }
     },
+    staleTime: 3000, // Reduce refetching frequency
+    retry: 2, // Retry failed requests
   });
 
   const handleStatusChange = async (jobId: number, newStatus: ApplicationStatus) => {

@@ -26,10 +26,13 @@ export interface IStorage {
 
 // In-memory fallback storage to handle database connection issues
 class MemoryStorage implements IStorage {
-  private users: User[] = [];
+  private users: User[] = [
+    // Create a default user with ID 1 to avoid foreign key constraints
+    { id: 1, username: 'default', password: 'password' }
+  ];
   private tailoringHistories: TailoringHistory[] = [];
   private jobPosts: JobPost[] = [];
-  private nextUserId = 1;
+  private nextUserId = 2; // Start from 2 since we already have user 1
   private nextJobId = 1;
   private nextHistoryId = 1;
 

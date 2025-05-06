@@ -160,7 +160,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.session?.userId || 1;
       const jobPost = await storage.createJobPost({
         ...validationResult.data,
-        userId
+        userId,
+        status: "saved" // Set default status to "saved"
       });
       
       res.status(201).json(jobPost);
