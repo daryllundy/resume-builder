@@ -40,16 +40,44 @@ export function useResumeTailor() {
       let text = "";
       
       if (file.type === "application/pdf") {
-        text = await parsePDF(file);
+        try {
+          // Try using the PDF.js parser first
+          text = await parsePDF(file);
+        } catch (pdfError) {
+          console.error("Error parsing PDF with PDF.js:", pdfError);
+          
+          // Fallback to direct text extraction
+          try {
+            // For simple text extraction, just read as text
+            text = await file.text();
+            
+            // Add a note for the user about fallback method
+            text = "Note: PDF parsing encountered an error, using basic text extraction instead.\n\n" + text;
+            
+            toast({
+              title: "Using fallback PDF extraction",
+              description: "The PDF couldn't be parsed properly. Using basic text extraction instead, which may not preserve formatting.",
+              variant: "warning",
+              duration: 5000,
+            });
+          } catch (fallbackError) {
+            console.error("Fallback text extraction also failed:", fallbackError);
+            throw new Error("Could not extract text from the PDF file. Please copy and paste the content manually.");
+          }
+        }
       } else {
-        // Handle text files
+        // Handle text, doc, and other files
         text = await file.text();
+      }
+      
+      if (!text.trim()) {
+        throw new Error("The uploaded file doesn't contain any text content. Please try a different file or paste your resume text directly.");
       }
       
       setResumeText(text);
     } catch (error) {
       console.error("Error parsing file:", error);
-      throw new Error("Failed to parse the uploaded file. Please try again or paste your resume text directly.");
+      throw new Error(error instanceof Error ? error.message : "Failed to parse the uploaded file. Please try again or paste your resume text directly.");
     }
   };
 

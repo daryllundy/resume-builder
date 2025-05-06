@@ -1,7 +1,11 @@
-import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import { getDocument, GlobalWorkerOptions, version } from 'pdfjs-dist';
 
-// Set worker path to CDN
-GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.4.120/build/pdf.worker.min.js';
+// Set worker path to CDN using the same version as the library to avoid mismatches
+// We get the version dynamically from the imported library
+GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${version}/build/pdf.worker.min.js`;
+
+// Log the version for debugging purposes
+console.log("Using PDF.js version:", version);
 
 export async function parsePDF(file: File): Promise<string> {
   try {
