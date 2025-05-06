@@ -71,12 +71,12 @@ export default function JobBoard() {
     : jobs.filter(job => job.status === selectedTab);
 
   return (
-    <div className="container py-10">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Job Application Tracker</h1>
+    <div className="container px-4 sm:px-6 py-6 sm:py-10">
+      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Application Tracker</h1>
         <Button 
           onClick={() => setIsAddingJob(true)}
-          className="bg-primary text-white"
+          className="bg-primary text-white w-full sm:w-auto"
         >
           Add New Job
         </Button>
@@ -95,16 +95,18 @@ export default function JobBoard() {
       )}
 
       <Tabs defaultValue="all" onValueChange={(value) => setSelectedTab(value as ApplicationStatus | "all")}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="all">All</TabsTrigger>
-          <TabsTrigger value="saved">Saved</TabsTrigger>
-          <TabsTrigger value="applied">Applied</TabsTrigger>
-          <TabsTrigger value="hr_screen">HR Screen</TabsTrigger>
-          <TabsTrigger value="interview">Interviews</TabsTrigger>
-          <TabsTrigger value="offer">Offers</TabsTrigger>
-          <TabsTrigger value="accepted">Accepted</TabsTrigger>
-          <TabsTrigger value="rejected">Rejected</TabsTrigger>
-        </TabsList>
+        <div className="overflow-auto pb-2">
+          <TabsList className="mb-4 w-auto inline-flex sm:w-full">
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="saved">Saved</TabsTrigger>
+            <TabsTrigger value="applied">Applied</TabsTrigger>
+            <TabsTrigger value="hr_screen">HR</TabsTrigger>
+            <TabsTrigger value="interview">Interviews</TabsTrigger>
+            <TabsTrigger value="offer">Offers</TabsTrigger>
+            <TabsTrigger value="accepted">Accepted</TabsTrigger>
+            <TabsTrigger value="rejected">Rejected</TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value={selectedTab}>
           {isLoading ? (
@@ -136,15 +138,17 @@ export default function JobBoard() {
                   key={job.id} 
                   className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:shadow-md transition-shadow"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-3 sm:gap-0">
                     <div>
-                      <h3 className="text-xl font-medium text-gray-800">{job.title}</h3>
-                      <p className="text-gray-600">{job.company}{job.location ? ` • ${job.location}` : ''}</p>
+                      <h3 className="text-lg sm:text-xl font-medium text-gray-800">{job.title}</h3>
+                      <p className="text-gray-600 text-sm sm:text-base">{job.company}{job.location ? ` • ${job.location}` : ''}</p>
                     </div>
-                    <JobStatusPill 
-                      status={job.status} 
-                      onStatusChange={(newStatus: ApplicationStatus) => handleStatusChange(job.id, newStatus)} 
-                    />
+                    <div className="self-start">
+                      <JobStatusPill 
+                        status={job.status} 
+                        onStatusChange={(newStatus: ApplicationStatus) => handleStatusChange(job.id, newStatus)} 
+                      />
+                    </div>
                   </div>
                   
                   <div className="mt-4">
@@ -153,11 +157,11 @@ export default function JobBoard() {
                     </div>
                   </div>
                   
-                  <div className="mt-4 flex justify-between items-center">
+                  <div className="mt-4 flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 xs:gap-0">
                     <div className="text-xs text-gray-500">
                       Added: {new Date(job.dateAdded).toLocaleDateString()}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3 self-end xs:self-auto">
                       {job.url && (
                         <a 
                           href={job.url} 

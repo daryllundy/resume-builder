@@ -65,12 +65,12 @@ export default function JobPostForm({ onSuccess, onCancel, initialValues }: JobP
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">Add New Job</h2>
+    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 shadow-sm">
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Add New Job</h2>
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="title"
@@ -100,7 +100,7 @@ export default function JobPostForm({ onSuccess, onCancel, initialValues }: JobP
             />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               control={form.control}
               name="location"
@@ -139,7 +139,7 @@ export default function JobPostForm({ onSuccess, onCancel, initialValues }: JobP
                 <FormControl>
                   <Textarea 
                     placeholder="Paste the full job description here..." 
-                    className="min-h-[150px]"
+                    className="min-h-[100px] sm:min-h-[150px]"
                     {...field} 
                   />
                 </FormControl>
@@ -157,7 +157,7 @@ export default function JobPostForm({ onSuccess, onCancel, initialValues }: JobP
                 <FormControl>
                   <Textarea 
                     placeholder="Add any personal notes about this job..." 
-                    className="min-h-[100px]"
+                    className="min-h-[80px] sm:min-h-[100px]"
                     {...field} 
                   />
                 </FormControl>
@@ -166,17 +166,19 @@ export default function JobPostForm({ onSuccess, onCancel, initialValues }: JobP
             )}
           />
           
-          <div className="flex justify-end space-x-2 pt-4">
+          <div className="flex flex-col xs:flex-row justify-end gap-2 xs:gap-0 xs:space-x-2 pt-4">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
+              className="w-full xs:w-auto order-2 xs:order-1"
             >
               Cancel
             </Button>
             <Button 
               type="submit"
               disabled={mutation.isPending}
+              className="w-full xs:w-auto order-1 xs:order-2"
             >
               {mutation.isPending ? (
                 <>

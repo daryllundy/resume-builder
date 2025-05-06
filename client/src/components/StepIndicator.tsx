@@ -25,14 +25,18 @@ export default function StepIndicator({ currentStep, setCurrentStep }: StepIndic
             <button
               key={step.id}
               onClick={() => handleStepClick(step.id)}
-              className={`flex-1 py-4 px-1 text-center border-b-2 font-medium text-sm ${
+              className={`flex-1 py-3 sm:py-4 px-1 text-center border-b-2 font-medium text-xs sm:text-sm ${
                 currentStep === step.id
                   ? "border-primary text-primary"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
               aria-current={currentStep === step.id ? "page" : undefined}
             >
-              {step.id}. {step.name}
+              <span className="block sm:inline">{step.id}.</span>{" "}
+              <span className="hidden xs:inline sm:inline">{step.name}</span>
+              <span className="xs:hidden">
+                {step.id === 1 ? "Resume" : step.id === 2 ? "Job" : "Result"}
+              </span>
             </button>
           ))}
         </nav>
