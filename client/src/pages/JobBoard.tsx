@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { JobPost, ApplicationStatus } from "@shared/schema";
+import type { JobPost, ApplicationStatus } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
-import JobStatusPill from "@/components/JobStatusPill";
-import JobPostForm from "@/components/JobPostForm";
+import JobStatusPill from "../components/JobStatusPill";
+import JobPostForm from "../components/JobPostForm";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function JobBoard() {
@@ -143,7 +143,7 @@ export default function JobBoard() {
                     </div>
                     <JobStatusPill 
                       status={job.status} 
-                      onStatusChange={(newStatus) => handleStatusChange(job.id, newStatus)} 
+                      onStatusChange={(newStatus: ApplicationStatus) => handleStatusChange(job.id, newStatus)} 
                     />
                   </div>
                   
