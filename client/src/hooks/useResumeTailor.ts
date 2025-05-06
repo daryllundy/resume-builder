@@ -57,7 +57,7 @@ export function useResumeTailor() {
             toast({
               title: "Using fallback PDF extraction",
               description: "The PDF couldn't be parsed properly. Using basic text extraction instead, which may not preserve formatting.",
-              variant: "warning",
+              variant: "destructive", // Using "destructive" instead of "warning" since it's not a supported variant
               duration: 5000,
             });
           } catch (fallbackError) {
