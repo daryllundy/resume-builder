@@ -92,8 +92,21 @@ export default function KanbanColumn({
     text-center
   `;
 
+  // Make the entire column a drop target
+  const { setNodeRef } = useSortable({
+    id: status,
+    data: {
+      type: "column",
+      status
+    }
+  });
+
   return (
-    <div className={columnClasses} id={status}>
+    <div 
+      ref={setNodeRef}
+      className={columnClasses} 
+      data-status={status}
+    >
       <h3 className={titleClasses}>{title} <span className="text-gray-500">({jobs.length})</span></h3>
       <div className="flex-1 overflow-y-auto space-y-2">
         {jobs.map((job) => (

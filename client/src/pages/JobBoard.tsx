@@ -32,6 +32,8 @@ export default function JobBoard() {
 
   const handleStatusChange = async (jobId: number, newStatus: ApplicationStatus) => {
     try {
+      console.log("Updating job status:", { jobId, newStatus });
+      
       await apiRequest(
         "PATCH",
         `/api/jobs/${jobId}/status`,
@@ -45,9 +47,11 @@ export default function JobBoard() {
       
       refetch();
     } catch (error) {
+      console.error("Status update error details:", error);
+      
       toast({
         title: "Error updating status",
-        description: "Failed to update job application status.",
+        description: "Failed to update job application status. Check console for details.",
         variant: "destructive",
       });
     }

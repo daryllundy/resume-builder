@@ -100,12 +100,20 @@ export default function KanbanBoard({
     }
 
     const jobId = Number(active.id);
-    const newStatus = over.id as ApplicationStatus;
+    const newStatus = String(over.id) as ApplicationStatus;
+    
+    console.log("Dragged job to:", { jobId, newStatus, overId: over.id });
     
     // Update job status if it changed
     const currentJob = jobs.find(job => job.id === jobId);
+    
     if (currentJob && currentJob.status !== newStatus) {
-      await onJobStatusChange(jobId, newStatus);
+      try {
+        await onJobStatusChange(jobId, newStatus);
+        console.log("Status updated successfully");
+      } catch (error) {
+        console.error("Failed to update job status:", error);
+      }
     }
     
     setActiveId(null);
