@@ -14,20 +14,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
   password: true,
 });
 
-// Resume tailoring history table schema
-export const tailoringHistories = pgTable("tailoring_histories", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  requestDate: timestamp("request_date").notNull(),
-  resumeText: text("resume_text").notNull(),
-  jobDescription: text("job_description").notNull(),
-  tailoredResume: text("tailored_resume"),
-});
-
-export const insertTailoringHistorySchema = createInsertSchema(tailoringHistories).omit({
-  id: true,
-});
-
 // Job application status enum
 export const applicationStatusEnum = pgEnum("application_status", [
   "saved",
@@ -53,6 +39,23 @@ export const jobPosts = pgTable("job_posts", {
   dateAdded: timestamp("date_added").notNull().defaultNow(),
   dateModified: timestamp("date_modified").notNull().defaultNow(),
   deadline: timestamp("deadline"),
+});
+
+// Resume tailoring history table schema
+export const tailoringHistories = pgTable("tailoring_histories", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  jobId: integer("job_id").references(() => jobPosts.id),
+  requestDate: timestamp("request_date").notNull(),
+  resumeText: text("resume_text").notNull(),
+  jobDescription: text("job_description").notNull(),
+  tailoredResume: text("tailored_resume"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const insertTailoringHistorySchema = createInsertSchema(tailoringHistories).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertJobPostSchema = createInsertSchema(jobPosts).omit({

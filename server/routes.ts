@@ -21,7 +21,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint to tailor a resume based on the job description
   app.post("/api/tailor", async (req, res) => {
     try {
-      const { resume, jobDescription } = req.body;
+      const { resume, jobDescription, jobId } = req.body;
 
       if (!resume || !jobDescription) {
         return res.status(400).json({ 
@@ -29,17 +29,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Store the tailoring request in history if user is logged in
-      const userId = req.session?.userId;
-      if (userId) {
-        await storage.createTailoringHistory({
-          userId,
-          requestDate: new Date(),
-          resumeText: resume,
-          jobDescription,
-        });
-      }
-
+      // Default to user ID 1 if not logged in for demo
+      const userId = req.session?.userId || 1;
+      
       // Call OpenAI to tailor the resume
       // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
       const completion = await openai.chat.completions.create({
@@ -59,6 +51,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const tailoredResume = completion.choices[0].message.content;
+      
+      // Store the tailoring request in history
+      await storage.createTailoringHistory({
+        userId,
+        jobId: jobId ? parseInt(jobId) : undefined,
+        requestDate: new Date(),
+        resumeText: resume,
+        jobDescription,
+        tailoredResume,
+      });
+
       res.send(tailoredResume);
     } catch (error) {
       console.error("Error tailoring resume:", error);
@@ -273,9 +276,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : history;
       
       // Sort by date, newest first
-      const sortedHistory = filteredHistory.sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      const sortedHistory = filteredHistory.sort((a, b) => {
+        const dateA = a.createdAt || a.requestDate;
+        const dateB = b.createdAt || b.requestDate;
+        return new Date(dateB).getTime() - new Date(dateA).getTime();
+      });
       
       res.json(sortedHistory);
     } catch (error) {
