@@ -1,6 +1,4 @@
 import { useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import ResumeForm from "@/components/ResumeForm";
 import JobDescriptionForm from "@/components/JobDescriptionForm";
 import TailoredResume from "@/components/TailoredResume";
@@ -49,10 +47,8 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <Header />
-      
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <>
+      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Introduction Section */}
         <section className="mb-8 text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-3">Tailor Your Resume to Match the Job</h2>
@@ -65,7 +61,7 @@ export default function Home() {
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <StepIndicator currentStep={currentStep} setCurrentStep={setCurrentStep} />
 
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {currentStep === 1 && (
               <ResumeForm 
                 resumeText={resumeText} 
@@ -102,10 +98,8 @@ export default function Home() {
         <Testimonials />
         <FAQ />
       </main>
-
-      <Footer />
       
       {isLoading && <LoadingOverlay />}
-    </div>
+    </>
   );
 }

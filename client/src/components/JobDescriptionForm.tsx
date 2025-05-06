@@ -100,9 +100,9 @@ export default function JobDescriptionForm({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6">
+    <div className="relative flex flex-col lg:flex-row gap-6">
       <div className="flex-1">
-        <div className="mb-4 flex justify-between items-start">
+        <div className="mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div>
             <h3 className="text-lg font-medium text-gray-800 mb-2">Enter Job Description</h3>
             <p className="text-sm text-gray-600">
@@ -115,12 +115,12 @@ export default function JobDescriptionForm({
               <Button 
                 variant="outline" 
                 size="sm"
-                className="text-primary border-primary hover:bg-primary/5"
+                className="text-primary border-primary hover:bg-primary/5 whitespace-nowrap"
               >
                 <i className="fas fa-save mr-2"></i> Save to Job Board
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] max-w-[90vw] w-full">
               <DialogHeader>
                 <DialogTitle>Save to Job Board</DialogTitle>
                 <DialogDescription>
@@ -128,56 +128,56 @@ export default function JobDescriptionForm({
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="jobTitle" className="text-right">
+                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                  <Label htmlFor="jobTitle" className="sm:text-right">
                     Job Title *
                   </Label>
                   <Input
                     id="jobTitle"
                     value={jobTitle}
                     onChange={(e) => setJobTitle(e.target.value)}
-                    className="col-span-3"
+                    className="sm:col-span-3"
                     placeholder="e.g. Software Engineer"
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="company" className="text-right">
+                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                  <Label htmlFor="company" className="sm:text-right">
                     Company *
                   </Label>
                   <Input
                     id="company"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="col-span-3"
+                    className="sm:col-span-3"
                     placeholder="e.g. Acme Inc."
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="location" className="text-right">
+                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                  <Label htmlFor="location" className="sm:text-right">
                     Location
                   </Label>
                   <Input
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="col-span-3"
+                    className="sm:col-span-3"
                     placeholder="e.g. San Francisco, CA (Remote)"
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="jobUrl" className="text-right">
+                <div className="grid grid-cols-1 sm:grid-cols-4 items-center gap-2 sm:gap-4">
+                  <Label htmlFor="jobUrl" className="sm:text-right">
                     Job URL
                   </Label>
                   <Input
                     id="jobUrl"
                     value={jobUrl}
                     onChange={(e) => setJobUrl(e.target.value)}
-                    className="col-span-3"
+                    className="sm:col-span-3"
                     placeholder="https://example.com/job-posting"
                   />
                 </div>
               </div>
-              <DialogFooter>
+              <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
                 <Button variant="outline" onClick={() => setIsSaveDialogOpen(false)}>
                   Cancel
                 </Button>
@@ -199,7 +199,7 @@ export default function JobDescriptionForm({
           id="jobDescription"
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
-          rows={20}
+          rows={12}
           className="w-full border-gray-300 rounded-md shadow-sm focus:border-primary focus:ring-primary resize-none font-mono text-sm"
           placeholder="Paste the job description here..."
         />
@@ -213,7 +213,7 @@ export default function JobDescriptionForm({
         </div>
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 mt-6 lg:mt-0">
         <div className="mb-4">
           <h3 className="text-lg font-medium text-gray-800 mb-2">Resume Summary</h3>
           <p className="text-sm text-gray-600">
@@ -221,7 +221,7 @@ export default function JobDescriptionForm({
           </p>
         </div>
 
-        <div className="border border-gray-200 rounded-lg p-6 bg-gray-50 h-full overflow-auto">
+        <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gray-50 h-full max-h-[400px] lg:max-h-none overflow-auto">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-medium text-gray-800">Your Current Resume</h4>
             <Button
@@ -240,20 +240,20 @@ export default function JobDescriptionForm({
         </div>
       </div>
 
-      <div className="absolute bottom-6 right-6 flex space-x-4">
+      <div className="static mt-8 lg:absolute lg:bottom-6 lg:right-6 flex justify-end space-x-4">
         <Button
           variant="outline"
           onClick={goToPreviousStep}
-          className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          className="px-3 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
-          <i className="fas fa-arrow-left mr-2"></i> Back
+          <i className="fas fa-arrow-left mr-2 hidden sm:inline-block"></i> Back
         </Button>
 
         <Button
           onClick={handleSubmit}
-          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+          className="px-3 py-2 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
         >
-          Tailor Resume <i className="fas fa-magic ml-2"></i>
+          Tailor Resume <i className="fas fa-magic ml-2 hidden sm:inline-block"></i>
         </Button>
       </div>
     </div>
