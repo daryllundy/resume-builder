@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
-import { parsePDF } from "@/lib/pdf";
 import html2pdf from "html2pdf.js";
 
 export function useResumeTailor() {
@@ -40,44 +39,37 @@ export function useResumeTailor() {
       let text = "";
       
       if (file.type === "application/pdf") {
+        // For PDF files, provide a friendly message explaining the limitation
+        toast({
+          title: "PDF Upload Detected",
+          description: "PDF parsing is currently limited. Please copy and paste your resume text directly for best results.",
+          duration: 5000,
+        });
+        
+        // Return a placeholder message instead of trying to parse the PDF
+        text = "Please copy and paste your resume text here, as direct PDF parsing is currently limited.";
+        
+      } else if (file.type.includes("text") || file.name.endsWith(".txt") || file.name.endsWith(".docx") || file.name.endsWith(".doc")) {
+        // For text-based files, extract the content directly
         try {
-          // Try using the PDF.js parser first
-          text = await parsePDF(file);
-        } catch (pdfError) {
-          console.error("Error parsing PDF with PDF.js:", pdfError);
+          text = await file.text();
           
-          // Fallback to direct text extraction
-          try {
-            // For simple text extraction, just read as text
-            text = await file.text();
-            
-            // Add a note for the user about fallback method
-            text = "Note: PDF parsing encountered an error, using basic text extraction instead.\n\n" + text;
-            
-            toast({
-              title: "Using fallback PDF extraction",
-              description: "The PDF couldn't be parsed properly. Using basic text extraction instead, which may not preserve formatting.",
-              variant: "destructive", // Using "destructive" instead of "warning" since it's not a supported variant
-              duration: 5000,
-            });
-          } catch (fallbackError) {
-            console.error("Fallback text extraction also failed:", fallbackError);
-            throw new Error("Could not extract text from the PDF file. Please copy and paste the content manually.");
+          if (!text.trim()) {
+            throw new Error("The uploaded file appears to be empty.");
           }
+        } catch (textError) {
+          console.error("Error extracting text from file:", textError);
+          throw new Error("Could not read text from the file. The file might be corrupted or in an unsupported format.");
         }
       } else {
-        // Handle text, doc, and other files
-        text = await file.text();
-      }
-      
-      if (!text.trim()) {
-        throw new Error("The uploaded file doesn't contain any text content. Please try a different file or paste your resume text directly.");
+        // For other file types
+        throw new Error(`Unsupported file type: ${file.type}. Please upload a text file or paste your resume directly.`);
       }
       
       setResumeText(text);
     } catch (error) {
       console.error("Error parsing file:", error);
-      throw new Error(error instanceof Error ? error.message : "Failed to parse the uploaded file. Please try again or paste your resume text directly.");
+      throw new Error(error instanceof Error ? error.message : "Failed to process the uploaded file. Please try again or paste your resume text directly.");
     }
   };
 

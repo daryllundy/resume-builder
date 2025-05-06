@@ -1,25 +1,15 @@
-// Simple PDF parsing implementation without using web workers
-// This avoids issues with CDN and worker version mismatches
+// PDF parsing functionality is currently disabled
+// We're now handling file type detection directly in useResumeTailor.ts
+
+/**
+ * This is a placeholder for future PDF parsing implementation.
+ * Currently, PDF parsing is done through a simplified approach in the useResumeTailor hook.
+ * 
+ * Future improvements might include:
+ * - Server-side PDF parsing
+ * - Alternative client-side libraries that don't rely on web workers
+ * - Better handling of PDF structure and formatting
+ */
 export async function parsePDF(file: File): Promise<string> {
-  try {
-    console.log("Warning: Setting up fake worker.");
-    
-    // For now, let's use a simple direct text extraction approach
-    try {
-      // For PDFs, we'll use a different approach later, but for now use basic text extraction
-      const text = await file.text();
-      
-      if (!text || text.trim().length === 0) {
-        throw new Error("Could not extract text from PDF - the file appears to be empty or image-based.");
-      }
-      
-      return text;
-    } catch (readError) {
-      console.error("Error reading PDF content:", readError);
-      throw new Error("Could not read PDF content. The file might be corrupted or password-protected.");
-    }
-  } catch (error) {
-    console.error('Error parsing PDF:', error);
-    throw new Error('Failed to parse PDF file. Please paste your resume text directly instead.');
-  }
+  throw new Error("PDF parsing is currently disabled. Please copy and paste your resume text directly.");
 }
