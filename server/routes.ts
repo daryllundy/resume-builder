@@ -256,6 +256,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(200).json({ status: "ok" });
   });
 
+  // Get tailoring history for a user or job
+  app.get("/api/tailoring-history", async (req, res) => {
+    try {
+      // Default to user ID 1 if not logged in for demo
+      const userId = req.session?.userId || 1;
+      
+      const jobId = req.query.jobId ? parseInt(req.query.jobId as string) : undefined;
+      
+      // Get all tailoring history for the user
+      const history = await storage.getTailoringHistoryByUserId(userId);
+      
+      // Filter by jobId if provided
+      const filteredHistory = jobId 
+        ? history.filter(item => item.jobId === jobId)
+        : history;
+      
+      // Sort by date, newest first
+      const sortedHistory = filteredHistory.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      res.json(sortedHistory);
+    } catch (error) {
+      console.error("Error fetching tailoring history:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch tailoring history", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
