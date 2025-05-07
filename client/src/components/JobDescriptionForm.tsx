@@ -17,12 +17,16 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 
+import ResumeTemplateSelector from "./ResumeTemplateSelector";
+
 interface JobDescriptionFormProps {
   jobDescription: string;
   setJobDescription: (description: string) => void;
   resumeText: string;
   goToPreviousStep: () => void;
   handleTailorResume: () => Promise<void>;
+  selectedTemplateId: string;
+  setSelectedTemplateId: (templateId: string) => void;
 }
 
 export default function JobDescriptionForm({
@@ -31,6 +35,8 @@ export default function JobDescriptionForm({
   resumeText,
   goToPreviousStep,
   handleTailorResume,
+  selectedTemplateId,
+  setSelectedTemplateId,
 }: JobDescriptionFormProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -215,11 +221,17 @@ export default function JobDescriptionForm({
 
       <div className="flex-1 mt-6 lg:mt-0">
         <div className="mb-4">
-          <h3 className="text-lg font-medium text-gray-800 mb-2">Resume Summary</h3>
+          <h3 className="text-lg font-medium text-gray-800 mb-2">Resume Style & Preview</h3>
           <p className="text-sm text-gray-600">
-            Your uploaded resume will be tailored to match this job description.
+            Select a style for your resume and preview before tailoring.
           </p>
         </div>
+        
+        {/* Template selector */}
+        <ResumeTemplateSelector 
+          selectedTemplateId={selectedTemplateId} 
+          onTemplateSelect={setSelectedTemplateId} 
+        />
 
         <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gray-50 h-full max-h-[400px] lg:max-h-none overflow-auto">
           <div className="flex items-center justify-between mb-3">

@@ -3,11 +3,13 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { toast } from "@/hooks/use-toast";
 import html2pdf from "html2pdf.js";
+import { getTemplateById } from "@/lib/resumeTemplates";
 
 export function useResumeTailor() {
   const [resumeText, setResumeText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [tailoredResumeText, setTailoredResumeText] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState("chronological");
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -16,14 +18,39 @@ export function useResumeTailor() {
         "/api/tailor", 
         { 
           resume: resumeText, 
-          jobDescription 
+          jobDescription,
+          templateId: selectedTemplateId
         }
       );
       
       return response.text();
     },
     onSuccess: (data) => {
-      setTailoredResumeText(data);
+      // Apply the selected template to the tailored resume
+      const template = getTemplateById(selectedTemplateId);
+      try {
+        // Parse the HTML content to extract the plain text
+        const tempElement = document.createElement("div");
+        tempElement.innerHTML = data;
+        const plainText = tempElement.innerText;
+        
+        // Apply the template formatting to the plain text
+        const formattedText = template.format(plainText);
+        
+        // Convert back to HTML format with proper line breaks
+        const formattedHtml = formattedText
+          .replace(/\n\n/g, '</p><p>')
+          .replace(/\n/g, '<br>')
+          .replace(/•/g, '&bull;');
+        
+        const wrappedHtml = `<p>${formattedHtml}</p>`.replace('<p></p>', '');
+        
+        setTailoredResumeText(wrappedHtml);
+      } catch (error) {
+        console.error("Error applying template:", error);
+        // Fallback to the original data if template application fails
+        setTailoredResumeText(data);
+      }
     },
     onError: (error) => {
       toast({
@@ -176,6 +203,8 @@ export function useResumeTailor() {
     jobDescription,
     setJobDescription,
     tailoredResumeText,
+    selectedTemplateId,
+    setSelectedTemplateId,
     isLoading: mutation.isPending,
     tailorResume,
     handleResumeUpload,
