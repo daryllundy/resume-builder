@@ -40,8 +40,21 @@ def main():
             }))
             
         elif command == "extract_text":
-            # Just extract text from an existing PDF
-            text = extract_text(file_path)
+            # Check if file is text or PDF
+            import magic
+            mime = magic.from_file(str(file_path), mime=True)
+            
+            if mime.startswith("text/"):
+                # For text files, just read the content directly
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    text = f.read()
+            elif mime.startswith("application/pdf"):
+                # For PDFs, use our extraction function
+                text = extract_text(file_path)
+            else:
+                # For other files, try to convert first
+                pdf_path = convert(file_path)
+                text = extract_text(pdf_path)
             
             print(json.dumps({
                 "success": True,
