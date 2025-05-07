@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useRef } from "react";
+import { Badge } from "@/components/ui/badge";
+import { getTemplateById } from "@/lib/resumeTemplates";
 
 interface TailoredResumeProps {
   originalResume: string;
@@ -8,6 +10,7 @@ interface TailoredResumeProps {
   startOver: () => void;
   downloadPDF: () => void;
   copyToClipboard: () => void;
+  selectedTemplateId?: string;
 }
 
 export default function TailoredResume({
@@ -17,8 +20,12 @@ export default function TailoredResume({
   startOver,
   downloadPDF,
   copyToClipboard,
+  selectedTemplateId = "chronological",
 }: TailoredResumeProps) {
   const tailoredResumeRef = useRef<HTMLDivElement>(null);
+
+  // Get the template information to display
+  const template = getTemplateById(selectedTemplateId);
 
   return (
     <div className="relative flex flex-col lg:flex-row gap-6">
@@ -36,7 +43,12 @@ export default function TailoredResume({
 
       <div className="flex-1 mt-6 lg:mt-0">
         <div className="mb-4 flex flex-col sm:flex-row justify-between sm:items-center gap-3 sm:gap-0">
-          <h3 className="text-lg font-medium text-gray-800">Tailored Resume</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-medium text-gray-800">Tailored Resume</h3>
+            <Badge variant="outline" className="border-primary text-primary">
+              {template.name} Style
+            </Badge>
+          </div>
           <div className="flex space-x-2">
             <Button
               variant="outline"

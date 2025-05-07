@@ -18,6 +18,8 @@ export default function Home() {
     jobDescription,
     setJobDescription,
     tailoredResumeText,
+    selectedTemplateId,
+    setSelectedTemplateId,
     isLoading,
     tailorResume,
     handleResumeUpload,
@@ -78,6 +80,8 @@ export default function Home() {
                 resumeText={resumeText}
                 goToPreviousStep={goToPreviousStep}
                 handleTailorResume={handleTailorResume}
+                selectedTemplateId={selectedTemplateId}
+                setSelectedTemplateId={setSelectedTemplateId}
               />
             )}
 
