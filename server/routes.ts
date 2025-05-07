@@ -4,6 +4,9 @@ import { storage } from "./storage";
 import OpenAI from "openai";
 import { insertJobPostSchema } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import { parseResume } from "./pdf-parser";
+import { log } from "./vite";
 
 // Extend the Express Request type to include session
 declare module 'express-serve-static-core' {
