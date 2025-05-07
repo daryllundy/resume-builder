@@ -93,6 +93,7 @@ export default function Home() {
                 startOver={startOver}
                 downloadPDF={downloadPDF}
                 copyToClipboard={copyToClipboard}
+                selectedTemplateId={selectedTemplateId}
               />
             )}
           </div>
