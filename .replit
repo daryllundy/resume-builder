@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["file", "ghostscript", "libreoffice", "pandoc"]
+packages = ["file", "ghostscript", "libreoffice", "pandoc", "poppler_utils", "tesseract"]
 
 [deployment]
 deploymentTarget = "autoscale"
