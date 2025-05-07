@@ -36,40 +36,53 @@ export function useResumeTailor() {
 
   const handleResumeUpload = async (file: File) => {
     try {
-      let text = "";
+      // Show loading toast
+      toast({
+        title: "Processing Resume",
+        description: "Your resume file is being processed...",
+        duration: 3000,
+      });
       
-      if (file.type === "application/pdf") {
-        // For PDF files, provide a friendly message explaining the limitation
-        toast({
-          title: "PDF Upload Detected",
-          description: "PDF parsing is currently limited. Please copy and paste your resume text directly for best results.",
-          duration: 5000,
-        });
-        
-        // Return a placeholder message instead of trying to parse the PDF
-        text = "Please copy and paste your resume text here, as direct PDF parsing is currently limited.";
-        
-      } else if (file.type.includes("text") || file.name.endsWith(".txt") || file.name.endsWith(".docx") || file.name.endsWith(".doc")) {
-        // For text-based files, extract the content directly
-        try {
-          text = await file.text();
-          
-          if (!text.trim()) {
-            throw new Error("The uploaded file appears to be empty.");
-          }
-        } catch (textError) {
-          console.error("Error extracting text from file:", textError);
-          throw new Error("Could not read text from the file. The file might be corrupted or in an unsupported format.");
-        }
-      } else {
-        // For other file types
-        throw new Error(`Unsupported file type: ${file.type}. Please upload a text file or paste your resume directly.`);
+      // Create a FormData object
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      // Send the file to the server for processing
+      const response = await fetch("/api/parse-resume", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.error || "Failed to parse resume");
       }
       
-      setResumeText(text);
+      const result = await response.json();
+      
+      if (!result.success || !result.text) {
+        throw new Error("No text was extracted from the resume");
+      }
+      
+      // Set the extracted text
+      setResumeText(result.text);
+      
+      toast({
+        title: "Resume Processed",
+        description: "Your resume has been successfully processed. Feel free to edit the text if needed.",
+      });
     } catch (error) {
       console.error("Error parsing file:", error);
-      throw new Error(error instanceof Error ? error.message : "Failed to process the uploaded file. Please try again or paste your resume text directly.");
+      toast({
+        title: "Error Processing Resume",
+        description: error instanceof Error ? error.message : "Failed to process the uploaded file. Please try again or paste your resume text directly.",
+        variant: "destructive",
+        duration: 5000,
+      });
+      
+      // For user convenience, allow them to manually type their resume
+      setResumeText(""); 
+      throw error;
     }
   };
 

@@ -21,6 +21,41 @@ declare module 'express-serve-static-core' {
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up multer for file uploads
+  const memoryStorage = multer.memoryStorage();
+  const upload = multer({
+    storage: memoryStorage,
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+  });
+  
+  // Parse resume file (PDF, Word, etc.)
+  app.post("/api/parse-resume", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ 
+          message: "No file uploaded" 
+        });
+      }
+
+      log(`Processing uploaded file: ${req.file.originalname}`, "resume-parser");
+      
+      // Parse the resume using our Python script
+      const text = await parseResume(req.file.buffer, req.file.originalname);
+      
+      return res.json({ 
+        success: true, 
+        text 
+      });
+    } catch (error) {
+      log(`Error parsing resume: ${error}`, "resume-parser");
+      return res.status(500).json({ 
+        message: "Failed to parse resume", 
+        error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
   // Endpoint to tailor a resume based on the job description
   app.post("/api/tailor", async (req, res) => {
     try {
