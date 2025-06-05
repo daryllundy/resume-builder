@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -13,6 +13,8 @@ import { Copy, Download, FileText, Wand2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import ResumeTemplateSelector from "./ResumeTemplateSelector";
 import { resumeTemplates } from "@/lib/resumeTemplates";
+import KeywordHighlighter, { extractKeywords } from "./KeywordHighlighter";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Resume, JobPost } from "@shared/schema";
 
 interface ResumeTailorDialogProps {
@@ -28,8 +30,14 @@ export default function ResumeTailorDialog({ isOpen, onOpenChange, jobPost }: Re
     originalResume: string;
     tailoredResume: string;
   } | null>(null);
+  const [viewMode, setViewMode] = useState<'original' | 'tailored'>('tailored');
   
   const { toast } = useToast();
+
+  // Extract keywords from job description for highlighting
+  const keywords = useMemo(() => {
+    return jobPost?.description ? extractKeywords(jobPost.description) : [];
+  }, [jobPost?.description]);
 
   // Fetch user's resumes
   const { data: resumes = [], isLoading: resumesLoading } = useQuery({
