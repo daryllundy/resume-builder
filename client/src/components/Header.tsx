@@ -20,11 +20,16 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <Link href="/">
               <div className={`text-sm font-medium ${location === '/' ? 'text-primary' : 'text-gray-600 hover:text-primary'} transition-colors cursor-pointer`}>
+                Home
+              </div>
+            </Link>
+            <Link href="/resume-builder">
+              <div className={`text-sm font-medium ${location === '/resume-builder' ? 'text-primary' : 'text-gray-600 hover:text-primary'} transition-colors cursor-pointer`}>
                 Resume Builder
               </div>
             </Link>
-            <Link href="/jobs">
-              <div className={`text-sm font-medium ${location === '/jobs' ? 'text-primary' : 'text-gray-600 hover:text-primary'} transition-colors cursor-pointer`}>
+            <Link href="/job-board">
+              <div className={`text-sm font-medium ${location === '/job-board' || location === '/jobs' ? 'text-primary' : 'text-gray-600 hover:text-primary'} transition-colors cursor-pointer`}>
                 Job Board
               </div>
             </Link>
