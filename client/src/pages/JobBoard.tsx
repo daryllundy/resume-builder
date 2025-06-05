@@ -6,12 +6,18 @@ import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import JobPostForm from "../components/JobPostForm";
 import KanbanBoard from "../components/KanbanBoard";
+import ResumeManager from "../components/ResumeManager";
+import ResumeTailorDialog from "../components/ResumeTailorDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Briefcase, FileText, Wand2, Plus } from "lucide-react";
 
 export default function JobBoard() {
   const [isAddingJob, setIsAddingJob] = useState(false);
   const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
   const [selectedTab, setSelectedTab] = useState<ApplicationStatus | "all">("all");
+  const [selectedResumeId, setSelectedResumeId] = useState<number | undefined>();
+  const [tailorDialogOpen, setTailorDialogOpen] = useState(false);
+  const [selectedJobForTailoring, setSelectedJobForTailoring] = useState<JobPost | undefined>();
   
   const { data: jobs = [], isLoading, refetch, error } = useQuery({
     queryKey: ["/api/jobs"],
@@ -80,78 +86,119 @@ export default function JobBoard() {
     ? jobs 
     : jobs.filter(job => job.status === selectedTab);
 
+  const handleTailorResumeForJob = (job: JobPost) => {
+    setSelectedJobForTailoring(job);
+    setTailorDialogOpen(true);
+  };
+
   return (
     <div className="container px-4 sm:px-6 py-6 sm:py-10">
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Application Tracker</h1>
-        <div className="flex flex-col xs:flex-row gap-2 xs:gap-3">
-          <div className="flex rounded-md border border-input">
-            <Button 
-              type="button"
-              onClick={() => setViewMode("kanban")}
-              variant={viewMode === "kanban" ? "default" : "ghost"}
-              className="rounded-r-none"
-            >
-              Kanban
-            </Button>
-            <Button 
-              type="button"
-              onClick={() => setViewMode("list")}
-              variant={viewMode === "list" ? "default" : "ghost"}
-              className="rounded-l-none"
-            >
-              List
-            </Button>
-          </div>
-          <Button 
-            onClick={() => setIsAddingJob(true)}
-            className="bg-primary text-white"
-          >
-            Add New Job
-          </Button>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Job Application Hub</h1>
       </div>
 
-      {isAddingJob && (
-        <div className="mb-8">
-          <JobPostForm
-            onCancel={() => setIsAddingJob(false)}
-            onSuccess={() => {
-              setIsAddingJob(false);
-              refetch();
-            }}
-          />
-        </div>
-      )}
+      <Tabs defaultValue="jobs" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="jobs" className="flex items-center gap-2">
+            <Briefcase className="h-4 w-4" />
+            Job Applications
+          </TabsTrigger>
+          <TabsTrigger value="resumes" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Resume Library
+          </TabsTrigger>
+        </TabsList>
 
-      {isLoading ? (
-        <div className="flex justify-center my-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      ) : jobs.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <h3 className="text-lg font-medium text-gray-600">No jobs found</h3>
-          <p className="text-sm text-gray-500 mt-2">
-            You haven't added any jobs to your board yet.
-          </p>
-          <Button 
-            onClick={() => setIsAddingJob(true)}
-            variant="outline" 
-            className="mt-4"
-          >
-            Add Your First Job
-          </Button>
-        </div>
-      ) : viewMode === "kanban" ? (
-        <div className="w-full">
-          <KanbanBoard 
-            jobs={jobs} 
-            onJobStatusChange={handleStatusChange} 
-            onJobDelete={handleDeleteJob}
-            refreshJobs={refetch}
-          />
-        </div>
-      ) : (
+        <TabsContent value="jobs" className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 sm:gap-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-semibold">Job Applications</h2>
+              {selectedResumeId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (jobs.length > 0) {
+                      handleTailorResumeForJob(jobs[0]);
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  Tailor Resume
+                </Button>
+              )}
+            </div>
+            <div className="flex flex-col xs:flex-row gap-2 xs:gap-3">
+              <div className="flex rounded-md border border-input">
+                <Button 
+                  type="button"
+                  onClick={() => setViewMode("kanban")}
+                  variant={viewMode === "kanban" ? "default" : "ghost"}
+                  className="rounded-r-none"
+                >
+                  Kanban
+                </Button>
+                <Button 
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  variant={viewMode === "list" ? "default" : "ghost"}
+                  className="rounded-l-none"
+                >
+                  List
+                </Button>
+              </div>
+              <Button 
+                onClick={() => setIsAddingJob(true)}
+                className="bg-primary text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Job
+              </Button>
+            </div>
+          </div>
+
+          {isAddingJob && (
+            <div className="mb-8">
+              <JobPostForm
+                onCancel={() => setIsAddingJob(false)}
+                onSuccess={() => {
+                  setIsAddingJob(false);
+                  refetch();
+                }}
+              />
+            </div>
+          )}
+
+          {isLoading ? (
+            <div className="flex justify-center my-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : jobs.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-lg">
+              <Briefcase className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-600">No jobs found</h3>
+              <p className="text-sm text-gray-500 mt-2">
+                You haven't added any jobs to your board yet.
+              </p>
+              <Button 
+                onClick={() => setIsAddingJob(true)}
+                variant="outline" 
+                className="mt-4"
+              >
+                Add Your First Job
+              </Button>
+            </div>
+          ) : viewMode === "kanban" ? (
+            <div className="w-full">
+              <KanbanBoard 
+                jobs={jobs} 
+                onJobStatusChange={handleStatusChange} 
+                onJobDelete={handleDeleteJob}
+                refreshJobs={refetch}
+              />
+            </div>
+          ) : (
         <Tabs defaultValue="all" onValueChange={(value) => setSelectedTab(value as ApplicationStatus | "all")}>
           <div className="overflow-auto pb-2">
             <TabsList className="mb-4 w-auto inline-flex sm:w-full">
@@ -239,7 +286,23 @@ export default function JobBoard() {
             )}
           </TabsContent>
         </Tabs>
-      )}
+          )}
+        </TabsContent>
+
+        <TabsContent value="resumes" className="space-y-6">
+          <ResumeManager
+            selectedResumeId={selectedResumeId}
+            onResumeSelect={setSelectedResumeId}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* Resume Tailor Dialog */}
+      <ResumeTailorDialog
+        isOpen={tailorDialogOpen}
+        onOpenChange={setTailorDialogOpen}
+        jobPost={selectedJobForTailoring}
+      />
     </div>
   );
 }

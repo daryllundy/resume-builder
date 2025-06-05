@@ -1,6 +1,7 @@
 import { users, type User, type InsertUser, 
   type TailoringHistory, type InsertTailoringHistory, tailoringHistories,
-  type JobPost, type InsertJobPost, jobPosts, type ApplicationStatus
+  type JobPost, type InsertJobPost, jobPosts, type ApplicationStatus,
+  resumes, type Resume, type InsertResume
 } from "@shared/schema";
 import { eq, desc, asc } from 'drizzle-orm';
 import { db } from './db';
@@ -11,6 +12,14 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
+  // Resume management methods
+  getResumesByUserId(userId: number): Promise<Resume[]>;
+  getResumeById(id: number): Promise<Resume | undefined>;
+  createResume(resume: InsertResume): Promise<Resume>;
+  updateResume(id: number, resume: Partial<InsertResume>): Promise<Resume | undefined>;
+  deleteResume(id: number): Promise<boolean>;
+  setDefaultResume(userId: number, resumeId: number): Promise<void>;
+
   // Resume tailoring history methods
   getTailoringHistoryByUserId(userId: number): Promise<TailoringHistory[]>;
   createTailoringHistory(history: InsertTailoringHistory): Promise<TailoringHistory>;
@@ -30,9 +39,11 @@ class MemoryStorage implements IStorage {
     // Create a default user with ID 1 to avoid foreign key constraints
     { id: 1, username: 'default', password: 'password' }
   ];
+  private resumes: Resume[] = [];
   private tailoringHistories: TailoringHistory[] = [];
   private jobPosts: JobPost[] = [];
   private nextUserId = 2; // Start from 2 since we already have user 1
+  private nextResumeId = 1;
   private nextJobId = 1;
   private nextHistoryId = 1;
 
@@ -53,14 +64,71 @@ class MemoryStorage implements IStorage {
     return user;
   }
 
+  // Resume management methods
+  async getResumesByUserId(userId: number): Promise<Resume[]> {
+    return this.resumes
+      .filter(resume => resume.userId === userId)
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+  }
+
+  async getResumeById(id: number): Promise<Resume | undefined> {
+    return this.resumes.find(resume => resume.id === id);
+  }
+
+  async createResume(insertResume: InsertResume): Promise<Resume> {
+    const now = new Date();
+    const resume = {
+      id: this.nextResumeId++,
+      ...insertResume,
+      originalFileName: insertResume.originalFileName || null,
+      isDefault: insertResume.isDefault || false,
+      createdAt: now,
+      updatedAt: now,
+    };
+    this.resumes.push(resume);
+    return resume;
+  }
+
+  async updateResume(id: number, updatedResume: Partial<InsertResume>): Promise<Resume | undefined> {
+    const resumeIndex = this.resumes.findIndex(resume => resume.id === id);
+    if (resumeIndex === -1) return undefined;
+
+    const now = new Date();
+    this.resumes[resumeIndex] = {
+      ...this.resumes[resumeIndex],
+      ...updatedResume,
+      updatedAt: now,
+    };
+    return this.resumes[resumeIndex];
+  }
+
+  async deleteResume(id: number): Promise<boolean> {
+    const resumeIndex = this.resumes.findIndex(resume => resume.id === id);
+    if (resumeIndex === -1) return false;
+
+    this.resumes.splice(resumeIndex, 1);
+    return true;
+  }
+
+  async setDefaultResume(userId: number, resumeId: number): Promise<void> {
+    // First, unset any existing default resumes for this user
+    this.resumes.forEach(resume => {
+      if (resume.userId === userId) {
+        resume.isDefault = false;
+      }
+    });
+
+    // Then set the new default
+    const resumeIndex = this.resumes.findIndex(resume => resume.id === resumeId && resume.userId === userId);
+    if (resumeIndex !== -1) {
+      this.resumes[resumeIndex].isDefault = true;
+    }
+  }
+
   async getTailoringHistoryByUserId(userId: number): Promise<TailoringHistory[]> {
     return this.tailoringHistories
       .filter(history => history.userId === userId)
-      .sort((a, b) => {
-        const dateA = a.createdAt || a.requestDate;
-        const dateB = b.createdAt || b.requestDate;
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
-      });
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 
   async createTailoringHistory(insertHistory: InsertTailoringHistory): Promise<TailoringHistory> {
@@ -194,12 +262,87 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
+  // Resume management methods
+  async getResumesByUserId(userId: number): Promise<Resume[]> {
+    return this.withFallback(
+      async () => {
+        return await db.select().from(resumes)
+          .where(eq(resumes.userId, userId))
+          .orderBy(desc(resumes.updatedAt));
+      },
+      () => this.memStorage.getResumesByUserId(userId)
+    );
+  }
+
+  async getResumeById(id: number): Promise<Resume | undefined> {
+    return this.withFallback(
+      async () => {
+        const [resume] = await db.select().from(resumes).where(eq(resumes.id, id));
+        return resume;
+      },
+      () => this.memStorage.getResumeById(id)
+    );
+  }
+
+  async createResume(insertResume: InsertResume): Promise<Resume> {
+    return this.withFallback(
+      async () => {
+        const [resume] = await db.insert(resumes).values(insertResume).returning();
+        return resume;
+      },
+      () => this.memStorage.createResume(insertResume)
+    );
+  }
+
+  async updateResume(id: number, updatedResume: Partial<InsertResume>): Promise<Resume | undefined> {
+    return this.withFallback(
+      async () => {
+        const [resume] = await db.update(resumes)
+          .set({
+            ...updatedResume,
+            updatedAt: new Date()
+          })
+          .where(eq(resumes.id, id))
+          .returning();
+        return resume;
+      },
+      () => this.memStorage.updateResume(id, updatedResume)
+    );
+  }
+
+  async deleteResume(id: number): Promise<boolean> {
+    return this.withFallback(
+      async () => {
+        const result = await db.delete(resumes).where(eq(resumes.id, id));
+        return (result.rowCount || 0) > 0;
+      },
+      () => this.memStorage.deleteResume(id)
+    );
+  }
+
+  async setDefaultResume(userId: number, resumeId: number): Promise<void> {
+    return this.withFallback(
+      async () => {
+        // First, unset any existing default resumes for this user
+        await db.update(resumes)
+          .set({ isDefault: false })
+          .where(eq(resumes.userId, userId));
+
+        // Then set the new default
+        await db.update(resumes)
+          .set({ isDefault: true })
+          .where(eq(resumes.id, resumeId));
+      },
+      () => this.memStorage.setDefaultResume(userId, resumeId)
+    );
+  }
+
   async getTailoringHistoryByUserId(userId: number): Promise<TailoringHistory[]> {
     return this.withFallback(
       async () => {
         return await db.select().from(tailoringHistories)
           .where(eq(tailoringHistories.userId, userId))
-          .orderBy(desc(tailoringHistories.requestDate));
+          .orderBy(desc(tailoringHistories.createdAt));
       },
       () => this.memStorage.getTailoringHistoryByUserId(userId)
     );

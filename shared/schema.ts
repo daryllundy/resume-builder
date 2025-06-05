@@ -25,6 +25,18 @@ export const applicationStatusEnum = pgEnum("application_status", [
   "rejected"
 ]);
 
+// Resumes table for storing uploaded resumes
+export const resumes = pgTable("resumes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  originalFileName: text("original_file_name"),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Job board schema
 export const jobPosts = pgTable("job_posts", {
   id: serial("id").primaryKey(),
@@ -44,13 +56,20 @@ export const jobPosts = pgTable("job_posts", {
 // Resume tailoring history table schema
 export const tailoringHistories = pgTable("tailoring_histories", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id),
-  jobId: integer("job_id").references(() => jobPosts.id),
-  requestDate: timestamp("request_date").notNull(),
-  resumeText: text("resume_text").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  resumeId: integer("resume_id").notNull().references(() => resumes.id),
+  jobPostId: integer("job_post_id").references(() => jobPosts.id),
+  originalResume: text("original_resume").notNull(),
   jobDescription: text("job_description").notNull(),
-  tailoredResume: text("tailored_resume"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+  tailoredResume: text("tailored_resume").notNull(),
+  templateId: text("template_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertResumeSchema = createInsertSchema(resumes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertTailoringHistorySchema = createInsertSchema(tailoringHistories).omit({
@@ -67,6 +86,9 @@ export const insertJobPostSchema = createInsertSchema(jobPosts).omit({
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertResume = z.infer<typeof insertResumeSchema>;
+export type Resume = typeof resumes.$inferSelect;
 
 export type InsertTailoringHistory = z.infer<typeof insertTailoringHistorySchema>;
 export type TailoringHistory = typeof tailoringHistories.$inferSelect;

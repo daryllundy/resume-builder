@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import OpenAI from "openai";
-import { insertJobPostSchema } from "@shared/schema";
+import { insertJobPostSchema, insertResumeSchema } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";
 import { parseResume } from "./pdf-parser";
@@ -56,19 +56,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+
+  // Resume management endpoints
+  app.post("/api/resumes", upload.single("file"), async (req, res) => {
+    try {
+      const userId = req.session?.userId || 1;
+      const { title } = req.body;
+
+      if (!title) {
+        return res.status(400).json({ message: "Resume title is required" });
+      }
+
+      let content = "";
+      let originalFileName = null;
+
+      if (req.file) {
+        // Parse uploaded file
+        content = await parseResume(req.file.buffer, req.file.originalname);
+        originalFileName = req.file.originalname;
+      } else if (req.body.content) {
+        // Use provided text content
+        content = req.body.content;
+      } else {
+        return res.status(400).json({ message: "Either file or content is required" });
+      }
+
+      const resume = await storage.createResume({
+        userId,
+        title,
+        content,
+        originalFileName: originalFileName || undefined,
+        isDefault: false
+      });
+
+      res.json(resume);
+    } catch (error) {
+      console.error("Error creating resume:", error);
+      res.status(500).json({ 
+        message: "Failed to create resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/resumes", async (req, res) => {
+    try {
+      const userId = req.session?.userId || 1;
+      const resumes = await storage.getResumesByUserId(userId);
+      res.json(resumes);
+    } catch (error) {
+      console.error("Error fetching resumes:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch resumes",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.get("/api/resumes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const resume = await storage.getResumeById(id);
+      
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+
+      res.json(resume);
+    } catch (error) {
+      console.error("Error fetching resume:", error);
+      res.status(500).json({ 
+        message: "Failed to fetch resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.put("/api/resumes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+
+      const resume = await storage.updateResume(id, updates);
+      
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+
+      res.json(resume);
+    } catch (error) {
+      console.error("Error updating resume:", error);
+      res.status(500).json({ 
+        message: "Failed to update resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.delete("/api/resumes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteResume(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting resume:", error);
+      res.status(500).json({ 
+        message: "Failed to delete resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/resumes/:id/set-default", async (req, res) => {
+    try {
+      const userId = req.session?.userId || 1;
+      const resumeId = parseInt(req.params.id);
+
+      await storage.setDefaultResume(userId, resumeId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error setting default resume:", error);
+      res.status(500).json({ 
+        message: "Failed to set default resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Endpoint to tailor a resume based on the job description
   app.post("/api/tailor", async (req, res) => {
     try {
-      const { resume, jobDescription, jobId } = req.body;
+      const { resumeId, jobDescription, jobPostId, templateId } = req.body;
 
-      if (!resume || !jobDescription) {
+      if (!resumeId || !jobDescription) {
         return res.status(400).json({ 
-          message: "Both resume and job description are required" 
+          message: "Resume ID and job description are required" 
         });
       }
 
       // Default to user ID 1 if not logged in for demo
       const userId = req.session?.userId || 1;
+      
+      // Get the resume content
+      const resume = await storage.getResumeById(resumeId);
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
       
       // Call OpenAI to tailor the resume
       // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -83,24 +221,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           {
             role: "user",
             content: 
-              `Job Description:\n${jobDescription}\n\nResume:\n${resume}\n\nPlease tailor this resume to highlight the most relevant skills and experiences for this job. Maintain the professional tone and overall structure, but reorganize and reword content to match the job requirements. Format the result as clean HTML with appropriate headings, paragraphs, and bullet points.`
+              `Job Description:\n${jobDescription}\n\nResume:\n${resume.content}\n\nPlease tailor this resume to highlight the most relevant skills and experiences for this job. Maintain the professional tone and overall structure, but reorganize and reword content to match the job requirements. Format the result as clean HTML with appropriate headings, paragraphs, and bullet points.`
           }
         ]
       });
 
-      const tailoredResume = completion.choices[0].message.content;
+      const tailoredResume = completion.choices[0].message.content || "";
       
       // Store the tailoring request in history
       await storage.createTailoringHistory({
         userId,
-        jobId: jobId ? parseInt(jobId) : undefined,
-        requestDate: new Date(),
-        resumeText: resume,
+        resumeId,
+        jobPostId: jobPostId ? parseInt(jobPostId) : null,
+        originalResume: resume.content,
         jobDescription,
         tailoredResume,
+        templateId: templateId || "chronological"
       });
 
-      res.send(tailoredResume);
+      res.json({ 
+        success: true,
+        tailoredResume,
+        originalResume: resume.content
+      });
     } catch (error) {
       console.error("Error tailoring resume:", error);
       res.status(500).json({ 
