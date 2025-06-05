@@ -10,9 +10,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Upload, FileText, MoreVertical, Star, StarOff, Edit, Trash2 } from "lucide-react";
+import { Plus, Upload, FileText, MoreVertical, Star, StarOff, Edit, Trash2, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Resume } from "@shared/schema";
+import ResumeScoreCard from "./ResumeScoreCard";
 
 interface ResumeManagerProps {
   selectedResumeId?: number;

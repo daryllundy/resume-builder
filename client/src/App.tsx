@@ -17,6 +17,7 @@ function Router() {
       <main className="flex-1">
         <Switch>
           <Route path="/" component={Home} />
+          <Route path="/job-board" component={JobBoard} />
           <Route path="/jobs" component={JobBoard} />
           <Route path="/tailored-resume/:id" component={TailoredResumePage} />
           <Route component={NotFound} />

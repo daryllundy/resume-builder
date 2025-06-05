@@ -15,6 +15,7 @@ import ResumeTemplateSelector from "./ResumeTemplateSelector";
 import { resumeTemplates } from "@/lib/resumeTemplates";
 import KeywordHighlighter, { extractKeywords } from "./KeywordHighlighter";
 import { motion, AnimatePresence } from "framer-motion";
+import ResumeScoreCard from "./ResumeScoreCard";
 import type { Resume, JobPost } from "@shared/schema";
 
 interface ResumeTailorDialogProps {
