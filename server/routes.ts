@@ -7,6 +7,7 @@ import { z } from "zod";
 import multer from "multer";
 import { parseResume } from "./pdf-parser";
 import { log } from "./vite";
+import { analyzeResumeScores, getResumeImpactScore } from "./ai-scoring";
 
 // Extend the Express Request type to include session
 declare module 'express-serve-static-core' {
@@ -468,6 +469,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Failed to fetch tailoring history", 
         error: error instanceof Error ? error.message : "Unknown error" 
+      });
+    }
+  });
+
+  // AI Resume Scoring endpoints
+  app.post("/api/analyze-resume", async (req: Request, res: Response) => {
+    try {
+      const { resumeContent, jobDescription } = req.body;
+      
+      if (!resumeContent || !jobDescription) {
+        return res.status(400).json({ 
+          error: "Resume content and job description are required" 
+        });
+      }
+
+      const scores = await analyzeResumeScores(resumeContent, jobDescription);
+      res.json(scores);
+    } catch (error) {
+      console.error("Error analyzing resume:", error);
+      res.status(500).json({ 
+        error: "Failed to analyze resume",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/resume-impact-score", async (req: Request, res: Response) => {
+    try {
+      const { resumeContent } = req.body;
+      
+      if (!resumeContent) {
+        return res.status(400).json({ 
+          error: "Resume content is required" 
+        });
+      }
+
+      const analysis = await getResumeImpactScore(resumeContent);
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error analyzing resume impact:", error);
+      res.status(500).json({ 
+        error: "Failed to analyze resume impact",
+        details: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });

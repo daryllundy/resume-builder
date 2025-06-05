@@ -42,7 +42,7 @@ export default function JobPostForm({ onSuccess, onCancel, initialValues }: JobP
 
   const mutation = useMutation({
     mutationFn: async (data: FormValues) => {
-      await apiRequest("POST", "/api/jobs", data);
+      return apiRequest("/api/jobs", "POST", data);
     },
     onSuccess: () => {
       toast({
