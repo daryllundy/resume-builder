@@ -33,7 +33,7 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
   // Fetch resumes
   const { data: resumes = [], isLoading } = useQuery({
     queryKey: ["/api/resumes"],
-    queryFn: () => apiRequest("/api/resumes", { method: "GET" })
+    queryFn: () => apiRequest("/api/resumes")
   });
 
   // Create resume mutation
@@ -81,11 +81,7 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
   // Update resume mutation
   const updateResumeMutation = useMutation({
     mutationFn: async (data: { id: number; updates: Partial<Resume> }) => {
-      return apiRequest(`/api/resumes/${data.id}`, {
-        method: "PUT",
-        body: JSON.stringify(data.updates),
-        headers: { "Content-Type": "application/json" }
-      });
+      return apiRequest(`/api/resumes/${data.id}`, "PUT", data.updates);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/resumes"] });

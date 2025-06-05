@@ -287,7 +287,6 @@ export default function JobBoard() {
           </TabsContent>
         </Tabs>
           )}
-        </TabsContent>
 
         <TabsContent value="resumes" className="space-y-6">
           <ResumeManager
