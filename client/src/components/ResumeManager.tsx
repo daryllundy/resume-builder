@@ -170,6 +170,8 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
   };
 
   const handleFileUpload = (file: File) => {
+    console.log("File upload triggered:", file);
+    
     if (!newResumeTitle.trim()) {
       toast({
         title: "Error",
@@ -179,6 +181,7 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
       return;
     }
 
+    console.log("Creating resume with file:", { title: newResumeTitle, file: file.name });
     createResumeMutation.mutate({
       title: newResumeTitle,
       file,
