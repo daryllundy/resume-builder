@@ -111,7 +111,8 @@ export function extractKeywords(jobDescription: string): string[] {
     .match(/\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\b/g) || [];
 
   // Combine and deduplicate
-  const allKeywords = [...new Set([...matchedKeywords, ...capitalizedWords.map(w => w.toLowerCase())])];
+  const combinedKeywords = [...matchedKeywords, ...capitalizedWords.map(w => w.toLowerCase())];
+  const allKeywords = Array.from(new Set(combinedKeywords));
   
   return allKeywords.slice(0, 20); // Limit to top 20 keywords
 }

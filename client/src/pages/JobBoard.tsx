@@ -8,8 +8,9 @@ import JobPostForm from "../components/JobPostForm";
 import KanbanBoard from "../components/KanbanBoard";
 import ResumeManager from "../components/ResumeManager";
 import ResumeTailorDialog from "../components/ResumeTailorDialog";
+import TailoringHistory from "../components/TailoringHistory";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, FileText, Wand2, Plus } from "lucide-react";
+import { Briefcase, FileText, Wand2, Plus, Clock } from "lucide-react";
 
 export default function JobBoard() {
   const [isAddingJob, setIsAddingJob] = useState(false);
@@ -98,7 +99,7 @@ export default function JobBoard() {
       </div>
 
       <Tabs defaultValue="jobs" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="jobs" className="flex items-center gap-2">
             <Briefcase className="h-4 w-4" />
             Job Applications
@@ -106,6 +107,10 @@ export default function JobBoard() {
           <TabsTrigger value="resumes" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
             Resume Library
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Tailoring History
           </TabsTrigger>
         </TabsList>
 
@@ -287,12 +292,20 @@ export default function JobBoard() {
           </TabsContent>
         </Tabs>
           )}
+        </TabsContent>
 
         <TabsContent value="resumes" className="space-y-6">
           <ResumeManager
             selectedResumeId={selectedResumeId}
             onResumeSelect={setSelectedResumeId}
           />
+        </TabsContent>
+
+        <TabsContent value="history" className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Tailoring History</h2>
+          </div>
+          <TailoringHistory />
         </TabsContent>
       </Tabs>
 
