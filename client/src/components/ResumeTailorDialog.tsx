@@ -46,11 +46,7 @@ export default function ResumeTailorDialog({ isOpen, onOpenChange, jobPost }: Re
       jobPostId?: number;
       templateId: string;
     }) => {
-      return apiRequest("/api/tailor", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
-      });
+      return apiRequest("/api/tailor", "POST", data);
     },
     onSuccess: (data) => {
       setTailoredResult({

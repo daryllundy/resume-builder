@@ -454,14 +454,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter by jobId if provided
       const filteredHistory = jobId 
-        ? history.filter(item => item.jobId === jobId)
+        ? history.filter(item => item.jobPostId === jobId)
         : history;
       
       // Sort by date, newest first
       const sortedHistory = filteredHistory.sort((a, b) => {
-        const dateA = a.createdAt || a.requestDate;
-        const dateB = b.createdAt || b.requestDate;
-        return new Date(dateB).getTime() - new Date(dateA).getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
       
       res.json(sortedHistory);

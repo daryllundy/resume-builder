@@ -104,7 +104,7 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
   // Delete resume mutation
   const deleteResumeMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/resumes/${id}`, { method: "DELETE" });
+      return apiRequest(`/api/resumes/${id}`, "DELETE");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/resumes"] });
@@ -125,7 +125,7 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
   // Set default resume mutation
   const setDefaultMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/resumes/${id}/set-default`, { method: "POST" });
+      return apiRequest(`/api/resumes/${id}/set-default`, "POST");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/resumes"] });
