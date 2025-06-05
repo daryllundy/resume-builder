@@ -22,17 +22,7 @@ export default function JobBoard() {
   
   const { data: jobs = [], isLoading, refetch, error } = useQuery({
     queryKey: ["/api/jobs"],
-    queryFn: async () => {
-      try {
-        const response = await apiRequest("GET", "/api/jobs");
-        const data = await response.json() as JobPost[];
-        console.log("Fetched jobs:", data);
-        return data;
-      } catch (error) {
-        console.error("Error fetching jobs:", error);
-        throw error;
-      }
-    },
+    queryFn: () => apiRequest("/api/jobs"),
     staleTime: 3000, // Reduce refetching frequency
     retry: 2, // Retry failed requests
   });
