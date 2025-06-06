@@ -8,6 +8,7 @@ import multer from "multer";
 import { parseResume } from "./pdf-parser";
 import { log } from "./vite";
 import { analyzeResumeScores, getResumeImpactScore } from "./ai-scoring";
+import { performEliteTailoring } from "./elite-tailor";
 
 // Extend the Express Request type to include session
 declare module 'express-serve-static-core' {
@@ -432,6 +433,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error deleting job:", error);
       res.status(500).json({
         message: "Failed to delete job",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Elite resume tailoring endpoint
+  app.post("/api/elite-tailor", async (req: Request, res: Response) => {
+    try {
+      const { resumeContent, jobDescription } = req.body;
+
+      if (!resumeContent || !jobDescription) {
+        return res.status(400).json({ 
+          message: "Resume content and job description are required" 
+        });
+      }
+
+      const result = await performEliteTailoring(resumeContent, jobDescription);
+      res.json(result);
+    } catch (error) {
+      console.error("Error performing elite tailoring:", error);
+      res.status(500).json({
+        message: "Failed to perform elite resume optimization",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }

@@ -14,6 +14,7 @@ import ResumeManager from "../components/ResumeManager";
 import TailoringHistory from "../components/TailoringHistory";
 import ResumeScoreCard from "../components/ResumeScoreCard";
 import ResumeTailorDialog from "../components/ResumeTailorDialog";
+import EliteResumeTailor from "../components/EliteResumeTailor";
 import type { Resume, JobPost } from "@shared/schema";
 
 export default function ResumeBuilder() {
