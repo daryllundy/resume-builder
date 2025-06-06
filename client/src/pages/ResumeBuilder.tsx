@@ -95,6 +95,10 @@ export default function ResumeBuilder() {
               <History className="h-4 w-4" />
               Tailoring History
             </TabsTrigger>
+            <TabsTrigger value="elite" className="flex items-center gap-2">
+              <Wand2 className="h-4 w-4" />
+              Elite Optimization
+            </TabsTrigger>
           </TabsList>
 
           {/* Resume Library Tab */}
@@ -261,6 +265,55 @@ export default function ResumeBuilder() {
           {/* Tailoring History Tab */}
           <TabsContent value="history" className="space-y-6">
             <TailoringHistory />
+          </TabsContent>
+
+          {/* Elite Optimization Tab */}
+          <TabsContent value="elite" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wand2 className="h-5 w-5 text-purple-600" />
+                  Elite Resume Optimization
+                </CardTitle>
+                <CardDescription>
+                  Advanced AI-powered resume analysis and optimization using professional consulting methodologies for maximum ATS compatibility and recruiter appeal.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!selectedResumeId ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Wand2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Select a resume from the Resume Library to begin elite optimization</p>
+                  </div>
+                ) : !customJobDescription.trim() ? (
+                  <div className="space-y-4">
+                    <div className="text-center py-4 text-gray-500">
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p>Add a job description to perform elite optimization analysis</p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="job-description">Job Description</Label>
+                      <Textarea
+                        id="job-description"
+                        value={customJobDescription}
+                        onChange={(e) => setCustomJobDescription(e.target.value)}
+                        placeholder="Paste the complete job description here for comprehensive analysis..."
+                        className="min-h-[200px]"
+                      />
+                    </div>
+                  </div>
+                ) : selectedResume ? (
+                  <EliteResumeTailor
+                    resumeContent={selectedResume.content}
+                    jobDescription={customJobDescription}
+                    onOptimizedResume={(optimizedResume) => {
+                      // Handle the optimized resume if needed
+                      console.log("Received optimized resume:", optimizedResume.substring(0, 100) + "...");
+                    }}
+                  />
+                ) : null}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 
