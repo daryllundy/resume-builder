@@ -44,11 +44,39 @@ def convert(uploaded_path: pathlib.Path) -> pathlib.Path:
     return out
 
 def extract_text(file_path: pathlib.Path) -> str:
-    """Extract text from a file - supports PDF and text files"""
+    """Extract text from a file - supports PDF, DOCX and text files"""
     mime = magic.from_file(str(file_path), mime=True)
+    file_ext = file_path.suffix.lower()
+    
+    # Handle DOCX files first (before checking MIME type)
+    if file_ext == '.docx':
+        try:
+            from docx import Document
+            doc = Document(str(file_path))
+            
+            # Extract text from all paragraphs
+            full_text = []
+            for paragraph in doc.paragraphs:
+                if paragraph.text.strip():
+                    full_text.append(paragraph.text.strip())
+            
+            # Extract text from tables
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        if cell.text.strip():
+                            full_text.append(cell.text.strip())
+            
+            extracted_text = '\n'.join(full_text)
+            if len(extracted_text.strip()) > 20:
+                return extracted_text.strip()
+            else:
+                print("DOCX extraction resulted in short text, trying fallback")
+        except Exception as e:
+            print(f"Error extracting DOCX: {e}")
     
     # For text files, just read the content
-    if mime.startswith("text/") or file_path.suffix.lower() == ".txt":
+    if mime.startswith("text/") or file_ext == ".txt":
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f.read()
