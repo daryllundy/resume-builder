@@ -12,6 +12,8 @@ interface TailoredResumeProps {
   downloadPDF: () => void;
   copyToClipboard: () => void;
   selectedTemplateId?: string;
+  jobDescription?: string;
+  aiRecommendations?: string[];
 }
 
 export default function TailoredResume({
@@ -22,8 +24,11 @@ export default function TailoredResume({
   downloadPDF,
   copyToClipboard,
   selectedTemplateId = "chronological",
+  jobDescription,
+  aiRecommendations = [],
 }: TailoredResumeProps) {
   const tailoredResumeRef = useRef<HTMLDivElement>(null);
+  const [showImprover, setShowImprover] = useState(false);
 
   // Get the template information to display
   const template = getTemplateById(selectedTemplateId);
@@ -88,6 +93,21 @@ export default function TailoredResume({
         </div>
       </div>
 
+      {/* Resume Improvement Section */}
+      {(aiRecommendations.length > 0 || showImprover) && (
+        <div className="mt-8">
+          <ResumeImprover
+            resumeContent={tailoredResume}
+            recommendations={aiRecommendations}
+            jobDescription={jobDescription}
+            onImprovedResume={(improvedResume) => {
+              // Could update the tailored resume if needed
+              console.log("Received improved resume:", improvedResume.substring(0, 100) + "...");
+            }}
+          />
+        </div>
+      )}
+
       <div className="static mt-8 lg:absolute lg:bottom-6 lg:right-6 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
         <Button
           variant="outline"
@@ -96,6 +116,16 @@ export default function TailoredResume({
         >
           <i className="fas fa-arrow-left mr-2 hidden sm:inline-block"></i> Edit Job Description
         </Button>
+
+        {!showImprover && aiRecommendations.length === 0 && (
+          <Button
+            variant="outline"
+            onClick={() => setShowImprover(true)}
+            className="px-4 py-2 border border-purple-300 bg-white text-purple-700 rounded-md hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+          >
+            <i className="fas fa-magic mr-2 hidden sm:inline-block"></i> Improve & Download
+          </Button>
+        )}
 
         <Button
           variant="outline"

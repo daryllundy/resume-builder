@@ -102,12 +102,12 @@ export default function ResumeImprover({
       // Handle PDF differently (returns HTML for client-side conversion)
       if (format === 'pdf') {
         const data = await response.json();
-        return { format: 'pdf', htmlContent: data.content };
+        return { format: 'pdf', htmlContent: data.content, blob: undefined };
       }
 
       // For other formats, return the blob
       const blob = await response.blob();
-      return { format, blob };
+      return { format, blob, htmlContent: undefined };
     },
     onSuccess: (data) => {
       if (data.format === 'pdf') {
@@ -137,14 +137,16 @@ export default function ResumeImprover({
         });
       } else {
         // Handle other formats
-        const url = URL.createObjectURL(data.blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `improved-resume.${data.format === 'markdown' ? 'md' : data.format}`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        if (data.blob) {
+          const url = URL.createObjectURL(data.blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `improved-resume.${data.format === 'markdown' ? 'md' : data.format}`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
 
         toast({
           title: "Downloaded",
@@ -171,7 +173,7 @@ export default function ResumeImprover({
   const getFormatIcon = (format: string) => {
     switch (format) {
       case 'pdf': return <FileText className="h-4 w-4" />;
-      case 'markdown': return <FileMarkdown className="h-4 w-4" />;
+      case 'markdown': return <FileDown className="h-4 w-4" />;
       case 'doc': return <FileType className="h-4 w-4" />;
       case 'txt': return <FileText className="h-4 w-4" />;
       default: return <FileText className="h-4 w-4" />;
