@@ -221,26 +221,50 @@ Web & Application Servers: Apache, Nginx"""
             
         elif command == "extract_text":
             try:
-                # Check if file is text or PDF
-                try:
-                    import magic
-                    mime = magic.from_file(str(file_path), mime=True)
+                # Handle DOCX files first by extension
+                file_ext = file_path.suffix.lower()
+                
+                if file_ext == '.docx':
+                    # Use python-docx for DOCX files
+                    from docx import Document
+                    doc = Document(str(file_path))
                     
-                    if mime.startswith("text/"):
-                        # For text files, just read the content directly
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            text = f.read()
-                    elif mime.startswith("application/pdf"):
-                        # For PDFs, try our extraction function
-                        text = extract_text(file_path)
-                    else:
-                        # For other files, try to convert first
-                        pdf_path = convert(file_path)
-                        text = extract_text(pdf_path)
-                except Exception as inner_e:
-                    # If libmagic or the normal methods fail, try direct extraction
-                    print(f"Initial extraction failed: {inner_e}", file=sys.stderr)
-                    text = direct_extract_text(file_path)
+                    # Extract text from all paragraphs
+                    full_text = []
+                    for paragraph in doc.paragraphs:
+                        if paragraph.text.strip():
+                            full_text.append(paragraph.text.strip())
+                    
+                    # Extract text from tables
+                    for table in doc.tables:
+                        for row in table.rows:
+                            for cell in row.cells:
+                                if cell.text.strip():
+                                    full_text.append(cell.text.strip())
+                    
+                    text = '\n'.join(full_text)
+                    if len(text.strip()) < 20:
+                        raise Exception("DOCX extraction resulted in very short text")
+                else:
+                    # Check if file is text or PDF using MIME type
+                    try:
+                        import magic
+                        mime = magic.from_file(str(file_path), mime=True)
+                        
+                        if mime.startswith("text/") or file_ext == '.txt':
+                            # For text files, just read the content directly
+                            with open(file_path, 'r', encoding='utf-8') as f:
+                                text = f.read()
+                        elif mime.startswith("application/pdf") or file_ext == '.pdf':
+                            # For PDFs, try our extraction function
+                            text = extract_text(file_path)
+                        else:
+                            # For other files, try direct extraction first
+                            text = direct_extract_text(file_path)
+                    except Exception as inner_e:
+                        # If libmagic or the normal methods fail, try direct extraction
+                        print(f"Initial extraction failed: {inner_e}", file=sys.stderr)
+                        text = direct_extract_text(file_path)
                 
                 print(json.dumps({
                     "success": True,
