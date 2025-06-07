@@ -176,6 +176,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get a specific resume by ID
+  app.get("/api/resumes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid resume ID" });
+      }
+      
+      const resume = await storage.getResumeById(id);
+      
+      if (!resume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+      
+      res.json(resume);
+    } catch (error) {
+      console.error("Error fetching resume:", error);
+      res.status(500).json({
+        message: "Failed to fetch resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Partial update for a specific resume (PATCH)
+  app.patch("/api/resumes/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "Invalid resume ID" });
+      }
+      
+      const updates = req.body;
+      
+      if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ message: "At least one field must be provided for update" });
+      }
+      
+      const updatedResume = await storage.updateResume(id, updates);
+      
+      if (!updatedResume) {
+        return res.status(404).json({ message: "Resume not found" });
+      }
+      
+      res.json(updatedResume);
+    } catch (error) {
+      console.error("Error updating resume:", error);
+      res.status(500).json({
+        message: "Failed to update resume",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   app.post("/api/resumes/:id/set-default", async (req, res) => {
     try {
       const userId = req.session?.userId || 1;
