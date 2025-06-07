@@ -9,6 +9,8 @@ import { parseResume } from "./pdf-parser";
 import { log } from "./vite";
 import { analyzeResumeScores, getResumeImpactScore } from "./ai-scoring";
 import { performEliteTailoring } from "./elite-tailor";
+import { improveResumeWithRecommendations } from "./resume-improver";
+import { convertResumeToFormat } from "./document-converter";
 
 // Extend the Express Request type to include session
 declare module 'express-serve-static-core' {
@@ -455,6 +457,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error performing elite tailoring:", error);
       res.status(500).json({
         message: "Failed to perform elite resume optimization",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Resume improvement with recommendations endpoint
+  app.post("/api/improve-resume", async (req: Request, res: Response) => {
+    try {
+      const { resumeContent, recommendations, jobDescription } = req.body;
+
+      if (!resumeContent || !recommendations || !Array.isArray(recommendations)) {
+        return res.status(400).json({ 
+          message: "Resume content and recommendations array are required" 
+        });
+      }
+
+      const result = await improveResumeWithRecommendations(
+        resumeContent, 
+        recommendations, 
+        jobDescription
+      );
+      res.json(result);
+    } catch (error) {
+      console.error("Error improving resume:", error);
+      res.status(500).json({
+        message: "Failed to improve resume with recommendations",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Document conversion endpoint
+  app.post("/api/convert-document", async (req: Request, res: Response) => {
+    try {
+      const { content, format, filename } = req.body;
+
+      if (!content || !format) {
+        return res.status(400).json({ 
+          message: "Content and format are required" 
+        });
+      }
+
+      if (!['pdf', 'markdown', 'doc', 'txt'].includes(format)) {
+        return res.status(400).json({ 
+          message: "Format must be one of: pdf, markdown, doc, txt" 
+        });
+      }
+
+      const result = await convertResumeToFormat({
+        content,
+        format,
+        filename: filename || 'resume'
+      });
+
+      if (!result.success) {
+        return res.status(500).json({
+          message: result.error || "Document conversion failed"
+        });
+      }
+
+      // For PDF (HTML) format, return the content for client-side conversion
+      if (format === 'pdf') {
+        const fs = require('fs');
+        const htmlContent = fs.readFileSync(result.filePath!, 'utf8');
+        // Clean up the temporary file
+        fs.unlinkSync(result.filePath!);
+        
+        return res.json({
+          success: true,
+          format: 'html',
+          content: htmlContent,
+          mimeType: 'text/html'
+        });
+      }
+
+      // For other formats, send the file
+      res.setHeader('Content-Type', result.mimeType!);
+      res.setHeader('Content-Disposition', `attachment; filename="${require('path').basename(result.filePath!)}"`);
+      
+      const fs = require('fs');
+      const fileBuffer = fs.readFileSync(result.filePath!);
+      
+      // Clean up the temporary file
+      fs.unlinkSync(result.filePath!);
+      
+      res.send(fileBuffer);
+    } catch (error) {
+      console.error("Error converting document:", error);
+      res.status(500).json({
+        message: "Failed to convert document",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }

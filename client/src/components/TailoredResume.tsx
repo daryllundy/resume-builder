@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { getTemplateById } from "@/lib/resumeTemplates";
+import ResumeImprover from "./ResumeImprover";
 
 interface TailoredResumeProps {
   originalResume: string;
