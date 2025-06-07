@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Plus, Upload, FileText, MoreVertical, Star, StarOff, Edit, Trash2, BarChart3 } from "lucide-react";
+import { Plus, Upload, FileText, MoreVertical, Star, StarOff, Edit, Trash2, BarChart3, Edit3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Resume } from "@shared/schema";
 import ResumeScoreCard from "./ResumeScoreCard";
@@ -30,6 +31,7 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location, setLocation] = useLocation();
 
   // Fetch resumes
   const { data: resumes = [], isLoading } = useQuery({
@@ -308,9 +310,13 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setLocation(`/resume-editor/${resume.id}`)}>
+                        <Edit3 className="h-4 w-4 mr-2" />
+                        Edit in Live Editor
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleEditResume(resume)}>
                         <Edit className="h-4 w-4 mr-2" />
-                        Edit
+                        Quick Edit
                       </DropdownMenuItem>
                       {!resume.isDefault && (
                         <DropdownMenuItem onClick={() => setDefaultMutation.mutate(resume.id)}>

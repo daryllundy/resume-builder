@@ -8,6 +8,7 @@ import Home from "@/pages/Home";
 import JobBoard from "@/pages/JobBoard";
 import TailoredResumePage from "@/pages/TailoredResumePage";
 import ResumeBuilder from "@/pages/ResumeBuilder";
+import ResumeEditor from "@/pages/ResumeEditor";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -21,6 +22,7 @@ function Router() {
           <Route path="/job-board" component={JobBoard} />
           <Route path="/jobs" component={JobBoard} />
           <Route path="/resume-builder" component={ResumeBuilder} />
+          <Route path="/resume-editor/:id" component={ResumeEditor} />
           <Route path="/tailored-resume/:id" component={TailoredResumePage} />
           <Route component={NotFound} />
         </Switch>
