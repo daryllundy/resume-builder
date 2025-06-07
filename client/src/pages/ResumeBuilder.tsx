@@ -15,6 +15,7 @@ import TailoringHistory from "../components/TailoringHistory";
 import ResumeScoreCard from "../components/ResumeScoreCard";
 import ResumeTailorDialog from "../components/ResumeTailorDialog";
 import EliteResumeTailor from "../components/EliteResumeTailor";
+import InteractiveResumeEditor from "../components/InteractiveResumeEditor";
 import type { Resume, JobPost } from "@shared/schema";
 
 export default function ResumeBuilder() {
@@ -98,6 +99,10 @@ export default function ResumeBuilder() {
             <TabsTrigger value="elite" className="flex items-center gap-2">
               <Wand2 className="h-4 w-4" />
               Elite Optimization
+            </TabsTrigger>
+            <TabsTrigger value="editor" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Live Editor
             </TabsTrigger>
           </TabsList>
 
@@ -314,6 +319,24 @@ export default function ResumeBuilder() {
                 ) : null}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Interactive Resume Editor Tab */}
+          <TabsContent value="editor" className="space-y-6">
+            <InteractiveResumeEditor
+              initialContent={selectedResume?.content || ''}
+              onContentChange={(content) => {
+                // Update the resume content in real-time if needed
+                console.log("Resume content updated:", content.substring(0, 100) + "...");
+              }}
+              onSave={(content) => {
+                // Handle saving the edited resume
+                if (selectedResumeId && selectedResume) {
+                  // Could implement save functionality here
+                  console.log("Saving resume:", content.substring(0, 100) + "...");
+                }
+              }}
+            />
           </TabsContent>
         </Tabs>
 
