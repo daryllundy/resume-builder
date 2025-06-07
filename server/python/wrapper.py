@@ -8,6 +8,7 @@ import pathlib
 import json
 import subprocess
 import re
+from docx import Document
 from resume_convert import convert, extract_text
 
 def direct_extract_text(file_path):
@@ -16,39 +17,70 @@ def direct_extract_text(file_path):
     methods_tried = []
     errors = []
     
-    # Try using pdftotext (poppler) first
-    try:
-        methods_tried.append("pdftotext")
-        result = subprocess.run(
-            ["pdftotext", file_path, "-"],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        if result.stdout and len(result.stdout.strip()) > 50:
-            return result.stdout.strip()
-        errors.append("pdftotext output too short")
-    except (subprocess.SubprocessError, FileNotFoundError) as e:
-        errors.append(f"pdftotext failed: {str(e)}")
+    # Detect file type by extension
+    file_ext = pathlib.Path(file_path).suffix.lower()
     
-    # Try using ghostscript
-    try:
-        methods_tried.append("ghostscript")
-        result = subprocess.run(
-            ["gs", "-dNOPAUSE", "-dBATCH", "-sDEVICE=txtwrite", "-sOutputFile=-", file_path],
-            capture_output=True,
-            text=True,
-            check=True
-        )
-        if result.stdout:
-            # Clean up the output - replace common encoding artifacts
-            text = result.stdout
-            text = re.sub(r'\(cid:\d+\)', ' ', text)
-            if len(text.strip()) > 50:
-                return text.strip()
-        errors.append("ghostscript output too short")
-    except (subprocess.SubprocessError, FileNotFoundError) as e:
-        errors.append(f"ghostscript failed: {str(e)}")
+    # Handle DOCX files specifically
+    if file_ext == '.docx':
+        try:
+            methods_tried.append("python-docx")
+            doc = Document(file_path)
+            
+            # Extract text from all paragraphs
+            full_text = []
+            for paragraph in doc.paragraphs:
+                if paragraph.text.strip():
+                    full_text.append(paragraph.text.strip())
+            
+            # Extract text from tables
+            for table in doc.tables:
+                for row in table.rows:
+                    for cell in row.cells:
+                        if cell.text.strip():
+                            full_text.append(cell.text.strip())
+            
+            extracted_text = '\n'.join(full_text)
+            if len(extracted_text.strip()) > 20:
+                return extracted_text.strip()
+            errors.append("python-docx extracted text too short")
+        except Exception as e:
+            errors.append(f"python-docx failed: {str(e)}")
+    
+    # Handle PDF files and other formats
+    if file_ext == '.pdf' or file_ext == '':
+        # Try using pdftotext (poppler) first
+        try:
+            methods_tried.append("pdftotext")
+            result = subprocess.run(
+                ["pdftotext", file_path, "-"],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            if result.stdout and len(result.stdout.strip()) > 50:
+                return result.stdout.strip()
+            errors.append("pdftotext output too short")
+        except (subprocess.SubprocessError, FileNotFoundError) as e:
+            errors.append(f"pdftotext failed: {str(e)}")
+        
+        # Try using ghostscript
+        try:
+            methods_tried.append("ghostscript")
+            result = subprocess.run(
+                ["gs", "-dNOPAUSE", "-dBATCH", "-sDEVICE=txtwrite", "-sOutputFile=-", file_path],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            if result.stdout:
+                # Clean up the output - replace common encoding artifacts
+                text = result.stdout
+                text = re.sub(r'\(cid:\d+\)', ' ', text)
+                if len(text.strip()) > 50:
+                    return text.strip()
+            errors.append("ghostscript output too short")
+        except (subprocess.SubprocessError, FileNotFoundError) as e:
+            errors.append(f"ghostscript failed: {str(e)}")
     
     # Try simple text extraction from binary file
     try:
