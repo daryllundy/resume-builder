@@ -11,6 +11,7 @@ import { analyzeResumeScores, getResumeImpactScore } from "./ai-scoring";
 import { performEliteTailoring } from "./elite-tailor";
 import { improveResumeWithRecommendations } from "./resume-improver";
 import { convertResumeToFormat } from "./document-converter";
+import { generateProfessionalTemplate, generateAISectionSuggestions, generateQuickSuggestions } from "./template-generator";
 
 // Extend the Express Request type to include session
 declare module 'express-serve-static-core' {
