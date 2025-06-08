@@ -12,6 +12,7 @@ import { performEliteTailoring } from "./elite-tailor";
 import { improveResumeWithRecommendations } from "./resume-improver";
 import { convertResumeToFormat } from "./document-converter";
 import { generateProfessionalTemplate, generateAISectionSuggestions, generateQuickSuggestions } from "./template-generator";
+import { analyzeResumeGaps, generateSectionImprovement } from "./gap-analyzer";
 
 // Extend the Express Request type to include session
 declare module 'express-serve-static-core' {
@@ -678,6 +679,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error generating quick suggestions:", error);
       res.status(500).json({
         message: "Failed to generate quick suggestions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Gap Analysis API
+  app.post("/api/analyze-gaps", async (req: Request, res: Response) => {
+    try {
+      const { resumeContent, targetIndustry, experienceLevel, jobDescription } = req.body;
+      
+      if (!resumeContent) {
+        return res.status(400).json({ message: "Resume content is required" });
+      }
+      
+      const analysis = await analyzeResumeGaps(
+        resumeContent,
+        targetIndustry,
+        experienceLevel,
+        jobDescription
+      );
+      
+      res.json(analysis);
+    } catch (error) {
+      console.error("Error analyzing resume gaps:", error);
+      res.status(500).json({
+        message: "Failed to analyze resume gaps",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Section Improvement API
+  app.post("/api/improve-section", async (req: Request, res: Response) => {
+    try {
+      const { resumeContent, sectionName, currentContent, recommendations } = req.body;
+      
+      if (!resumeContent || !sectionName || !recommendations) {
+        return res.status(400).json({ message: "Resume content, section name, and recommendations are required" });
+      }
+      
+      const improvement = await generateSectionImprovement(
+        resumeContent,
+        sectionName,
+        currentContent || "",
+        recommendations
+      );
+      
+      res.json(improvement);
+    } catch (error) {
+      console.error("Error improving section:", error);
+      res.status(500).json({
+        message: "Failed to improve section",
         error: error instanceof Error ? error.message : "Unknown error"
       });
     }

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Wand2, Plus, Upload, BarChart3, History, Sparkles } from "lucide-react";
+import { FileText, Wand2, Plus, Upload, BarChart3, History, Sparkles, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ResumeManager from "../components/ResumeManager";
 import TailoringHistory from "../components/TailoringHistory";
@@ -18,6 +18,7 @@ import ResumeTailorDialog from "../components/ResumeTailorDialog";
 import EliteResumeTailor from "../components/EliteResumeTailor";
 import InteractiveResumeEditor from "../components/InteractiveResumeEditor";
 import TemplateGenerator from "../components/TemplateGenerator";
+import ResumeGapAnalyzer from "../components/ResumeGapAnalyzer";
 import type { Resume, JobPost } from "@shared/schema";
 
 export default function ResumeBuilder() {
@@ -106,7 +107,7 @@ export default function ResumeBuilder() {
         </div>
 
         <Tabs defaultValue="resumes" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="resumes" className="flex items-center gap-1 text-xs">
               <FileText className="h-3 w-3" />
               Library
@@ -118,6 +119,10 @@ export default function ResumeBuilder() {
             <TabsTrigger value="analysis" className="flex items-center gap-1 text-xs">
               <BarChart3 className="h-3 w-3" />
               Analysis
+            </TabsTrigger>
+            <TabsTrigger value="gaps" className="flex items-center gap-1 text-xs">
+              <Search className="h-3 w-3" />
+              Gap Analysis
             </TabsTrigger>
             <TabsTrigger value="history" className="flex items-center gap-1 text-xs">
               <History className="h-3 w-3" />
@@ -316,6 +321,37 @@ export default function ResumeBuilder() {
                   <ResumeScoreCard 
                     resumeContent={selectedResume.content}
                     showJobMatch={false}
+                  />
+                ) : null}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Gap Analysis Tab */}
+          <TabsContent value="gaps" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  Smart Resume Gap Analysis
+                </CardTitle>
+                <CardDescription>
+                  Identify missing sections, content weaknesses, and get targeted improvement recommendations
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!selectedResumeId ? (
+                  <div className="text-center py-8 text-gray-500">
+                    <Search className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>Select a resume from the Resume Library to analyze gaps</p>
+                  </div>
+                ) : selectedResume ? (
+                  <ResumeGapAnalyzer 
+                    resumeContent={selectedResume.content}
+                    onSectionImprovement={(section, improvedContent) => {
+                      // Handle section improvement callback if needed
+                      console.log(`Improved ${section}:`, improvedContent.substring(0, 100) + "...");
+                    }}
                   />
                 ) : null}
               </CardContent>
