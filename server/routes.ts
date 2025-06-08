@@ -607,6 +607,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Template Generator API
+  app.post("/api/generate-template", async (req: Request, res: Response) => {
+    try {
+      const { templateType, jobDescription, experience, industry } = req.body;
+      
+      if (!templateType || !industry) {
+        return res.status(400).json({ message: "Template type and industry are required" });
+      }
+      
+      const result = await generateProfessionalTemplate({
+        templateType,
+        jobDescription,
+        experience: experience || "Professional",
+        industry
+      });
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating template:", error);
+      res.status(500).json({
+        message: "Failed to generate template",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // AI Section Suggestions API
+  app.post("/api/ai-section-suggestions", async (req: Request, res: Response) => {
+    try {
+      const { sectionType, currentContent, jobDescription } = req.body;
+      
+      if (!sectionType) {
+        return res.status(400).json({ message: "Section type is required" });
+      }
+      
+      const result = await generateAISectionSuggestions(
+        sectionType,
+        currentContent || "",
+        jobDescription
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating AI section suggestions:", error);
+      res.status(500).json({
+        message: "Failed to generate suggestions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  // Quick AI Suggestions API
+  app.post("/api/ai-quick-suggestions", async (req: Request, res: Response) => {
+    try {
+      const { sectionType, currentContent, jobDescription } = req.body;
+      
+      if (!sectionType) {
+        return res.status(400).json({ message: "Section type is required" });
+      }
+      
+      const result = await generateQuickSuggestions(
+        sectionType,
+        currentContent || "",
+        jobDescription
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error("Error generating quick suggestions:", error);
+      res.status(500).json({
+        message: "Failed to generate quick suggestions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
   // Health check endpoint
   app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "ok" });

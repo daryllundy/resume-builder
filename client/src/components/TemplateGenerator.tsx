@@ -83,10 +83,7 @@ export default function TemplateGenerator({ onTemplateGenerated }: TemplateGener
       experience: string;
       industry: string;
     }) => {
-      return await apiRequest('/api/generate-template', {
-        method: 'POST',
-        body: data
-      });
+      return await apiRequest('/api/generate-template', 'POST', data);
     },
     onSuccess: (data: GeneratedTemplate) => {
       toast({

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Wand2, Plus, Upload, BarChart3, History } from "lucide-react";
+import { FileText, Wand2, Plus, Upload, BarChart3, History, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ResumeManager from "../components/ResumeManager";
 import TailoringHistory from "../components/TailoringHistory";
@@ -16,6 +16,7 @@ import ResumeScoreCard from "../components/ResumeScoreCard";
 import ResumeTailorDialog from "../components/ResumeTailorDialog";
 import EliteResumeTailor from "../components/EliteResumeTailor";
 import InteractiveResumeEditor from "../components/InteractiveResumeEditor";
+import TemplateGenerator from "../components/TemplateGenerator";
 import type { Resume, JobPost } from "@shared/schema";
 
 export default function ResumeBuilder() {
@@ -108,10 +109,34 @@ export default function ResumeBuilder() {
 
           {/* Resume Library Tab */}
           <TabsContent value="resumes" className="space-y-6">
-            <ResumeManager 
-              selectedResumeId={selectedResumeId ? parseInt(selectedResumeId) : undefined}
-              onResumeSelect={(id) => setSelectedResumeId(id.toString())}
-            />
+            <div className="grid gap-6">
+              {/* Template Generator Card */}
+              <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold text-purple-900 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5" />
+                    AI-Powered Template Generator
+                  </CardTitle>
+                  <CardDescription className="text-purple-700">
+                    Generate professional resume templates tailored to your industry and experience level using AI
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <TemplateGenerator 
+                    onTemplateGenerated={(content) => {
+                      // Handle generated template - could create new resume or update existing
+                      console.log('Generated template:', content);
+                    }}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* Existing Resume Manager */}
+              <ResumeManager 
+                selectedResumeId={selectedResumeId ? parseInt(selectedResumeId) : undefined}
+                onResumeSelect={(id) => setSelectedResumeId(id.toString())}
+              />
+            </div>
           </TabsContent>
 
           {/* Tailor Resume Tab */}
