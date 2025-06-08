@@ -22,8 +22,7 @@ export default function TailoredResumePage() {
     queryKey: [`/api/jobs/${jobId}`],
     queryFn: async () => {
       if (!jobId) return null;
-      const response = await apiRequest('GET', `/api/jobs/${jobId}`);
-      return response.json() as Promise<JobPost>;
+      return apiRequest(`/api/jobs/${jobId}`) as Promise<JobPost>;
     },
     enabled: !!jobId,
   });
@@ -33,8 +32,7 @@ export default function TailoredResumePage() {
     queryKey: [`/api/tailoring-history`, jobId],
     queryFn: async () => {
       if (!jobId) return [];
-      const response = await apiRequest('GET', `/api/tailoring-history?jobId=${jobId}`);
-      return response.json() as Promise<TailoringHistory[]>;
+      return apiRequest(`/api/tailoring-history?jobId=${jobId}`) as Promise<TailoringHistory[]>;
     },
     enabled: !!jobId,
   });

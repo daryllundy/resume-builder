@@ -53,7 +53,7 @@ export default function JobDescriptionForm({
       description: string;
       url: string;
     }) => {
-      await apiRequest("POST", "/api/job-description/save", data);
+      await apiRequest("/api/job-description/save", "POST", data);
     },
     onSuccess: () => {
       toast({
