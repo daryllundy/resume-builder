@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +27,9 @@ export default function ResumeBuilder() {
   const [tailorMode, setTailorMode] = useState<"existing-job" | "custom">("existing-job");
   const [tailorDialogOpen, setTailorDialogOpen] = useState(false);
   const [selectedJobForTailoring, setSelectedJobForTailoring] = useState<JobPost | undefined>();
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch user's resumes
   const { data: resumes = [], isLoading: resumesLoading } = useQuery({
@@ -37,6 +41,28 @@ export default function ResumeBuilder() {
   const { data: jobs = [], isLoading: jobsLoading } = useQuery({
     queryKey: ["/api/jobs"],
     queryFn: () => apiRequest("/api/jobs")
+  });
+
+  // Create resume from generated template
+  const createResumeMutation = useMutation({
+    mutationFn: async (data: { title: string; content: string }) => {
+      return await apiRequest('/api/resumes', 'POST', data);
+    },
+    onSuccess: (newResume) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/resumes'] });
+      toast({
+        title: "Resume Created Successfully",
+        description: `New resume "${newResume.title}" has been added to your library`,
+      });
+      setSelectedResumeId(newResume.id.toString());
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to Create Resume",
+        description: error instanceof Error ? error.message : "Unable to create resume",
+        variant: "destructive"
+      });
+    }
   });
 
   const handleTailorResume = () => {
@@ -80,30 +106,30 @@ export default function ResumeBuilder() {
         </div>
 
         <Tabs defaultValue="resumes" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="resumes" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Resume Library
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="resumes" className="flex items-center gap-1 text-xs">
+              <FileText className="h-3 w-3" />
+              Library
             </TabsTrigger>
-            <TabsTrigger value="tailor" className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4" />
-              Tailor Resume
+            <TabsTrigger value="tailor" className="flex items-center gap-1 text-xs">
+              <Wand2 className="h-3 w-3" />
+              Tailor
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              AI Analysis
+            <TabsTrigger value="analysis" className="flex items-center gap-1 text-xs">
+              <BarChart3 className="h-3 w-3" />
+              Analysis
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <History className="h-4 w-4" />
-              Tailoring History
+            <TabsTrigger value="history" className="flex items-center gap-1 text-xs">
+              <History className="h-3 w-3" />
+              History
             </TabsTrigger>
-            <TabsTrigger value="elite" className="flex items-center gap-2">
-              <Wand2 className="h-4 w-4" />
-              Elite Optimization
+            <TabsTrigger value="elite" className="flex items-center gap-1 text-xs">
+              <Sparkles className="h-3 w-3" />
+              Elite
             </TabsTrigger>
-            <TabsTrigger value="editor" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Live Editor
+            <TabsTrigger value="editor" className="flex items-center gap-1 text-xs">
+              <FileText className="h-3 w-3" />
+              Editor
             </TabsTrigger>
           </TabsList>
 
@@ -124,8 +150,12 @@ export default function ResumeBuilder() {
                 <CardContent>
                   <TemplateGenerator 
                     onTemplateGenerated={(content) => {
-                      // Handle generated template - could create new resume or update existing
-                      console.log('Generated template:', content);
+                      // Create a new resume from the generated template
+                      const templateTitle = `AI Generated Resume - ${new Date().toLocaleDateString()}`;
+                      createResumeMutation.mutate({
+                        title: templateTitle,
+                        content: content
+                      });
                     }}
                   />
                 </CardContent>
