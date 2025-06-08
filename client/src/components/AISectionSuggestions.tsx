@@ -57,13 +57,10 @@ export default function AISectionSuggestions({
 
   const getSuggestionsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/ai-section-suggestions', {
-        method: 'POST',
-        body: {
-          sectionType,
-          currentContent,
-          jobDescription
-        }
+      return await apiRequest('/api/ai-section-suggestions', 'POST', {
+        sectionType,
+        currentContent,
+        jobDescription
       });
     },
     onSuccess: (data: AISuggestionsResponse) => {
@@ -311,13 +308,10 @@ export function AISectionSuggestionsPopover({
 
   const getQuickSuggestionsMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/ai-quick-suggestions', {
-        method: 'POST',
-        body: {
-          sectionType,
-          currentContent: currentContent.slice(0, 200), // Limit for quick suggestions
-          jobDescription
-        }
+      return await apiRequest('/api/ai-quick-suggestions', 'POST', {
+        sectionType,
+        currentContent: currentContent.slice(0, 200), // Limit for quick suggestions
+        jobDescription
       });
     },
     onSuccess: (data: { suggestions: string[] }) => {
