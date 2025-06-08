@@ -28,6 +28,12 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
   const [newResumeTitle, setNewResumeTitle] = useState("");
   const [newResumeContent, setNewResumeContent] = useState("");
   const [uploadMethod, setUploadMethod] = useState<"file" | "text">("file");
+
+  // Function to generate default title with today's date
+  const generateDefaultTitle = () => {
+    const today = new Date().toLocaleDateString();
+    return `New Resume - ${today}`;
+  };
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -212,7 +218,18 @@ export default function ResumeManager({ selectedResumeId, onResumeSelect }: Resu
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Resume Library</h3>
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+          setIsCreateDialogOpen(open);
+          if (open && !newResumeTitle) {
+            setNewResumeTitle(generateDefaultTitle());
+          }
+          if (!open) {
+            // Reset form when closing
+            setNewResumeTitle("");
+            setNewResumeContent("");
+            setUploadMethod("file");
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
