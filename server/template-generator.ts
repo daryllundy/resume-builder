@@ -21,36 +21,40 @@ const templatePrompts = {
 - Contemporary section headers and layout
 - Strategic use of white space
 - Professional typography
-- Skills-forward presentation
-- Achievement-focused bullet points`,
+- Skills-forward presentation with 15+ relevant keywords
+- Achievement-focused bullet points with technical terminology
+- Modern industry buzzwords and trending technologies`,
 
   executive: `Generate an executive-level resume template emphasizing leadership and strategic impact. Include:
-- Executive summary highlighting strategic achievements
-- Leadership experience with quantified results
+- Executive summary highlighting strategic achievements with C-suite keywords
+- Leadership experience with quantified results and business terminology
 - Board service, speaking engagements, or industry recognition
 - Traditional, sophisticated formatting
-- Focus on business impact and P&L responsibility`,
+- Focus on business impact and P&L responsibility
+- Strategic keywords: transformation, revenue growth, stakeholder management, strategic planning`,
 
   creative: `Design a creative portfolio resume template that showcases innovation and design thinking:
 - Dynamic layout with visual elements
 - Portfolio/project highlights section
-- Creative skills and software proficiency
+- Creative skills and software proficiency (Adobe Creative Suite, Figma, Sketch, etc.)
 - Awards and recognition section
-- Brand/personal statement area`,
+- Brand/personal statement area
+- Creative industry keywords: user experience, visual design, brand identity, digital marketing`,
 
   technical: `Build a technical specialist resume template optimized for engineering roles:
-- Technical skills matrix organized by category
-- Project portfolios with technologies used
-- Certifications and continuous learning
+- Technical skills matrix organized by category (Programming Languages, Frameworks, Databases, Cloud Platforms)
+- Project portfolios with technologies used and specific tech stacks
+- Certifications and continuous learning (AWS, Azure, Google Cloud, Kubernetes, etc.)
 - Open source contributions or publications
-- Problem-solving achievements with technical metrics`,
+- Problem-solving achievements with technical metrics
+- High-demand technical keywords: microservices, DevOps, CI/CD, containerization, machine learning, cybersecurity`,
 
   'entry-level': `Create an entry-level resume template highlighting potential and education:
-- Strong education section with relevant coursework
-- Internships, projects, and volunteer experience
+- Strong education section with relevant coursework and GPA (if 3.5+)
+- Internships, projects, and volunteer experience with measurable outcomes
 - Transferable skills from academic and extracurricular activities
 - Leadership roles in student organizations
-- Technical projects and certifications`,
+- Technical projects and certifications (entry-level keywords: teamwork, problem-solving, communication, adaptability, time management)`,
 
   'career-change': `Develop a career transition resume template emphasizing transferable skills:
 - Skills-based format highlighting transferable competencies
@@ -77,15 +81,31 @@ ${basePrompt}
 Generate a complete resume template with realistic, professional content that someone in ${industry} with ${experience} experience would have. Include:
 
 1. Professional Header (Name, Contact Info, LinkedIn, Portfolio if relevant)
-2. Professional Summary (3-4 lines highlighting key value proposition)
-3. Core Skills/Competencies (relevant to ${industry})
+2. Professional Summary (3-4 lines highlighting key value proposition with relevant keywords)
+3. Core Skills/Competencies (CRITICAL: Include 12-15 highly relevant technical and soft skills using exact terminology from job descriptions and industry standards)
 4. Professional Experience (2-4 relevant positions with 3-4 achievement-focused bullets each)
 5. Education (relevant degree and certifications)
 6. Additional sections as appropriate (Projects, Certifications, Awards, etc.)
 
+**KEYWORD OPTIMIZATION REQUIREMENTS:**
+- Extract and integrate high-value keywords from the job description (if provided)
+- Include industry-standard technical skills, software, methodologies, and certifications
+- Use exact terminology that ATS systems scan for (e.g., "JavaScript" not "JS", "Search Engine Optimization" not "SEO")
+- Incorporate keywords naturally throughout all sections, especially in:
+  * Professional Summary (3-5 strategic keywords)
+  * Core Skills section (comprehensive keyword list)
+  * Experience bullets (action verbs + technical terms)
+  * Education/Certifications (relevant credential keywords)
+
+**ATS OPTIMIZATION:**
+- Use standard section headers (Professional Experience, Education, Skills)
+- Include both abbreviated and full forms of technical terms
+- Add relevant industry buzzwords and trending technologies
+- Ensure 8-12% keyword density throughout the document
+
 Format as clean, ATS-friendly text with clear section headers. Use professional language and industry-specific terminology for ${industry}. Focus on quantifiable achievements and impact.
 
-IMPORTANT: Create realistic, professional content - not placeholder text. Make it industry-specific and compelling.`;
+IMPORTANT: Create realistic, professional content - not placeholder text. Make it industry-specific, keyword-rich, and compelling for both ATS systems and human recruiters.`;
 
   try {
     // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
@@ -94,7 +114,7 @@ IMPORTANT: Create realistic, professional content - not placeholder text. Make i
       messages: [
         {
           role: "system",
-          content: "You are an expert resume writer and career strategist. Create professional, industry-specific resume templates with realistic content that showcases best practices for the given field and experience level."
+          content: "You are an expert resume writer, ATS optimization specialist, and career strategist. Your expertise includes: 1) Identifying high-value keywords from job descriptions, 2) Creating ATS-compliant formatting, 3) Strategic keyword placement for maximum scoring, 4) Industry-specific terminology and trending skills, 5) Balancing keyword density with natural readability. Create professional, keyword-rich resume templates that score 85%+ on ATS systems while remaining compelling to human recruiters."
         },
         {
           role: "user",
