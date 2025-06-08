@@ -57,11 +57,12 @@ const templatePrompts = {
 - Technical projects and certifications (entry-level keywords: teamwork, problem-solving, communication, adaptability, time management)`,
 
   'career-change': `Develop a career transition resume template emphasizing transferable skills:
-- Skills-based format highlighting transferable competencies
+- Skills-based format highlighting transferable competencies with cross-industry keywords
 - Bridge experiences that connect previous and target roles
-- Professional development and reskilling efforts
+- Professional development and reskilling efforts (certifications, bootcamps, courses)
 - Volunteer work or side projects in target field
-- Personal brand statement explaining career pivot`
+- Personal brand statement explaining career pivot
+- Strategic keywords: adaptability, cross-functional experience, continuous learning, strategic thinking`
 };
 
 export async function generateProfessionalTemplate(request: TemplateGenerationRequest): Promise<GeneratedTemplate> {
