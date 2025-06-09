@@ -111,7 +111,7 @@ function handleResumeOperations(method: string, id?: string, action?: string, da
       
     case 'POST':
       if (action === 'set-default') {
-        const updatedResumes = resumes.map(r => ({ ...r, isDefault: r.id === parseInt(id) }));
+        const updatedResumes = resumes.map(r => ({ ...r, isDefault: r.id === parseInt(id || '0') }));
         localStorage.setItem(STORAGE_KEYS.RESUMES, JSON.stringify(updatedResumes));
         return { success: true };
       }
@@ -305,16 +305,15 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
-      credentials: "include",
-    });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+    // Use our localStorage-based apiRequest for data fetching
+    try {
+      return await apiRequest(queryKey[0] as string);
+    } catch (error: any) {
+      if (unauthorizedBehavior === "returnNull" && error.message?.includes("401")) {
+        return null;
+      }
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
