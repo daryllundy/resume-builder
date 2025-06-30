@@ -33,7 +33,7 @@ A web application that helps job seekers tailor their resumes to specific job de
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/resume-tailor.git
+git clone https://github.com/daryllundy/resume-tailor.git
 cd resume-tailor
 ```
 
